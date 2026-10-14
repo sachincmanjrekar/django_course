@@ -54,7 +54,7 @@ def post_detail(request, id):
     return HttpResponse(html)
 
 
-def google(request):
-    return HttpResponseRedirect("https://www.google.com")
+def google(request, id):
+    return HttpResponseRedirect(f"/post/{id}/")
 
     

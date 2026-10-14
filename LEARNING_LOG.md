@@ -117,3 +117,22 @@ Sample redirect URL
             return HttpResponseRedirect("https://www.google.com")
     - Open **http://127.0.0.1:8000/google/** -> browser is sent to https://www.google.com
       (address bar changes, unlike the /post/1/ lookup above).
+
+Redirect fails with hard-coded URL
+    - In blog/blog/urls.py the prefix was changed from 'post/' to 'posts/', and:
+        path('<int:id>/', views.google)
+    - In blog/posts/views.py the redirect still uses the old path:
+        def google(request, id):
+            return HttpResponseRedirect(f"/post/{id}/")
+    - Open **http://127.0.0.1:8000/1/** -> redirects to /post/1/ -> 404 Page not found
+      (only /posts/1/ exists now).
+    - Lesson: changing a URL in urls.py breaks every hard-coded path in views (and home page links).
+    - Fix: give the URL a name and build it from the name:
+        # posts/urls.py
+        path('<int:id>/', views.post_detail, name='post_detail')
+
+        # views.py
+        from django.shortcuts import redirect
+        def google(request, id):
+            return redirect('post_detail', id=id)   # Django builds "/posts/1/" itself
+      (reverse('post_detail', args=[id]) gives the URL as a string.)
