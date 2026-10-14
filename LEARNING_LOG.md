@@ -106,3 +106,14 @@ What happens when a link is clicked (e.g. /post/1/)
     - This is NOT a redirect. The browser asks for /post/1/ once; Django looks it up
       in blog/urls.py, then posts/urls.py, and sends back the page. Address bar stays /post/1/.
     - Redirect = server tells the browser to go to a different URL (address bar changes).
+
+Sample redirect URL
+    - In blog/blog/urls.py:
+        path('google/', views.google)
+    - In blog/posts/views.py:
+        from django.http import HttpResponseRedirect
+
+        def google(request):
+            return HttpResponseRedirect("https://www.google.com")
+    - Open **http://127.0.0.1:8000/google/** -> browser is sent to https://www.google.com
+      (address bar changes, unlike the /post/1/ lookup above).

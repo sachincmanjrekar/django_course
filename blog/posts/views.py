@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 
 post_list = [
     {
@@ -52,5 +52,9 @@ def post_detail(request, id):
     '''
 
     return HttpResponse(html)
+
+
+def google(request):
+    return HttpResponseRedirect("https://www.google.com")
 
     
