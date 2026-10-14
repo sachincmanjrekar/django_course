@@ -76,3 +76,10 @@ Sample dynamic URL
     - Open **http://127.0.0.1:8000/post/sample_dynamic_url/**
         -> shows "Post detail page for post sample_dynamic_url"
     - id is received as a string (print(type(id)) -> <class 'str'>).
+
+Dynamic URL with int converter
+    - In blog/posts/urls.py:
+        path('<int:id>/', views.post_detail)
+          -> <int:id> only matches whole numbers; id is passed to the view as int.
+    - **http://127.0.0.1:8000/post/2/** -> "Post detail page for post 2"
+    - **http://127.0.0.1:8000/post/sample_dynamic_url/** -> Page not found (404), not a number.
