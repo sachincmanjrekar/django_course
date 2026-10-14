@@ -83,3 +83,26 @@ Dynamic URL with int converter
           -> <int:id> only matches whole numbers; id is passed to the view as int.
     - **http://127.0.0.1:8000/post/2/** -> "Post detail page for post 2"
     - **http://127.0.0.1:8000/post/sample_dynamic_url/** -> Page not found (404), not a number.
+
+Clickable posts on home page
+    - In blog/posts/views.py, home() wraps each post title in a link:
+        <a href="/post/{post["id"]}/">
+            <h2>{post["id"]}-{post["title"]}</h2>
+        </a>
+    - **http://127.0.0.1:8000/post/home/** -> click a title to open its detail page (e.g. /post/1/).
+
+What happens when a link is clicked (e.g. /post/1/)
+    Click "/post/1/"
+       |
+       v
+    blog/blog/urls.py   -> 'post/' matches -> include('posts.urls')
+       |                   (removes "post/", passes "1/")
+       v
+    blog/posts/urls.py  -> '<int:id>/' matches "1/" -> id = 1
+       |
+       v
+    views.post_detail(request, id=1) -> returns the HTML page
+
+    - This is NOT a redirect. The browser asks for /post/1/ once; Django looks it up
+      in blog/urls.py, then posts/urls.py, and sends back the page. Address bar stays /post/1/.
+    - Redirect = server tells the browser to go to a different URL (address bar changes).
