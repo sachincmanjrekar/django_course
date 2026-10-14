@@ -52,3 +52,9 @@ include() - connecting app URLs to the project
         path('helloworld/', views.hello_world)
     - Result: post/ + helloworld/ = http://127.0.0.1:8000/post/helloworld/ -> "Hello, World!"
     - Each app keeps its own URLs, so the app can be reused in another project.
+
+ROOT_URLCONF - where Django starts looking for URLs
+    - In blog/blog/settings.py:
+        ROOT_URLCONF = 'blog.urls'
+    - Tells Django the main URL file is blog/blog/urls.py.
+    - Every request is matched there first; include() then passes it on to app URL files (e.g. posts/urls.py).
