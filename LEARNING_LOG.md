@@ -65,3 +65,14 @@ HTML response with h1 tag
             return HttpResponse('<h1>Hello, World!</h1>')
     - HttpResponse can return HTML; the browser shows "Hello, World!" as a big heading.
     - Open **http://127.0.0.1:8000/post/helloworld/**
+
+Sample dynamic URL
+    - In blog/posts/urls.py:
+        path('<id>/', views.post_detail)
+          -> <id> matches any value in that part of the URL and passes it to the view.
+    - In blog/posts/views.py:
+        def post_detail(request, id):
+            return HttpResponse(f"<h1>Post detail page for post {id}</h1>")
+    - Open **http://127.0.0.1:8000/post/sample_dynamic_url/**
+        -> shows "Post detail page for post sample_dynamic_url"
+    - id is received as a string (print(type(id)) -> <class 'str'>).
