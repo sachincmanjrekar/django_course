@@ -136,3 +136,56 @@ Redirect fails with hard-coded URL
         def google(request, id):
             return redirect('post_detail', id=id)   # Django builds "/posts/1/" itself
       (reverse('post_detail', args=[id]) gives the URL as a string.)
+
+Redirect fixed by giving URLs a name
+    - In blog/posts/urls.py:
+        path('home/', views.home, name='home'),
+        path('<int:id>/', views.post_detail, name='post_detail')
+    - In blog/posts/views.py:
+        from django.urls import reverse
+
+        def google(request, id):
+            url = reverse('post_detail', args=[id])   # builds "/post/1/" from the name
+            return HttpResponseRedirect(url)
+    - Open **http://127.0.0.1:8000/1/** -> redirects to /post/1/
+    - If the prefix in blog/blog/urls.py changes (e.g. 'post/' -> 'posts/'), the redirect still works.
+    - Still hard-coded: links in home() use href="/post/{post["id"]}/";
+      could use reverse('post_detail', args=[post["id"]]) as well.
+    - reverse() takes the URL's NAME and builds the full path (prefix included):
+        reverse('post_detail', args=[1])   # -> "/post/1/"
+        reverse('home')                    # -> "/post/home/"
+      How it builds "/post/1/":
+        1. finds name='post_detail' in posts/urls.py -> pattern '<int:id>/'
+        2. sees posts/urls.py is included under 'post/' in blog/blog/urls.py
+        3. joins them and fills in id: 'post/' + '1/' -> "/post/1/"
+      Using it in home():
+        for post in post_list:
+            url = reverse('post_detail', args=[post["id"]])
+            html += f'''
+                <div>
+                    <a href="{url}">
+                        <h2>{post["id"]}-{post["title"]}</h2>
+                    </a>
+                    <p>{post["content"]}</p>
+                </div>
+            '''
+      If 'post/' changes to 'posts/' in blog/blog/urls.py, links become /posts/1/ automatically.
+      Check: print(reverse('home')) prints /post/home/ in the terminal.
+    - Every URL starts at blog/blog/urls.py: because settings.py has
+      ROOT_URLCONF = 'blog.urls', every request is matched first there.
+
+    Without redirect (clicking a link to /post/1/) -> ONE request:
+        browser asks for /post/1/
+           blog/blog/urls.py   -> 'post/' matches -> include('posts.urls')
+           blog/posts/urls.py  -> '<int:id>/' matches "1/" -> views.post_detail(id=1)
+           post_detail() returns the post page
+
+    With redirect (opening /1/) -> TWO requests, blog/urls.py is checked twice:
+        Request 1: browser asks for /1/
+           blog/blog/urls.py   -> '<int:id>/' matches -> views.google(id=1)
+           google() replies: "go to /post/1/"  (redirect)
+
+        Request 2: browser now asks for /post/1/  (address bar changes)
+           blog/blog/urls.py   -> 'post/' matches -> include('posts.urls')
+           blog/posts/urls.py  -> '<int:id>/' matches "1/" -> views.post_detail(id=1)
+           post_detail() returns the post page
