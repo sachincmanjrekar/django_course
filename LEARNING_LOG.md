@@ -58,3 +58,10 @@ ROOT_URLCONF - where Django starts looking for URLs
         ROOT_URLCONF = 'blog.urls'
     - Tells Django the main URL file is blog/blog/urls.py.
     - Every request is matched there first; include() then passes it on to app URL files (e.g. posts/urls.py).
+
+HTML response with h1 tag
+    - In blog/posts/views.py:
+        def hello_world(request):
+            return HttpResponse('<h1>Hello, World!</h1>')
+    - HttpResponse can return HTML; the browser shows "Hello, World!" as a big heading.
+    - Open **http://127.0.0.1:8000/post/helloworld/**
