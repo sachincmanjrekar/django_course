@@ -41,3 +41,14 @@ Page not found (404)
     - Removed path('post/helloworld/', views.hello_world) from blog/blog/urls.py.
     - Ran python manage.py runserver and opened http://127.0.0.1:8000/post/helloworld/
       -> "Page not found", because Django only serves URLs listed in urlpatterns.
+
+include() - connecting app URLs to the project
+    - blog/blog/urls.py (project):
+        from django.urls import include, path
+        path('post/', include('posts.urls'))
+          -> any URL starting with "post/" is sent to posts/urls.py
+    - blog/posts/urls.py (app, created by hand):
+        from . import views
+        path('helloworld/', views.hello_world)
+    - Result: post/ + helloworld/ = http://127.0.0.1:8000/post/helloworld/ -> "Hello, World!"
+    - Each app keeps its own URLs, so the app can be reused in another project.
