@@ -36,3 +36,8 @@ URLs and Views
     - urls.py  -> maps a URL (web address) to a view.
     - views.py -> fetches data from the database, checks authentication,
                   and sends the response back to the client.
+
+Page not found (404)
+    - Removed path('post/helloworld/', views.hello_world) from blog/blog/urls.py.
+    - Ran python manage.py runserver and opened http://127.0.0.1:8000/post/helloworld/
+      -> "Page not found", because Django only serves URLs listed in urlpatterns.
