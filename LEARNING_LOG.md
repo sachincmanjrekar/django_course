@@ -354,3 +354,34 @@ Showing a single post (post.html)
       **http://127.0.0.1:8000/post/1/** shows the full content.
     - Hard-coded link again (/post/...). Template version of reverse() is the url tag:
         <a href="{% url 'post_detail' post.id %}">
+
+Back to Home link and the url tag
+    - blog/posts/templates/posts/post.html:
+        <a href="/post/home/">Back to Home</a>
+    - Problem: post URLs are now hard-coded in two places:
+        post.html -> href="/post/home/"
+        home.html -> href="/post/{{ post.id }}/"
+      If 'post/' changes to 'posts/' in blog/blog/urls.py, both links break (404).
+    - Fix: {% url %} tag = template version of reverse(); builds the link from the URL NAME
+      (names already set in posts/urls.py: name='home', name='post_detail'):
+        <!-- post.html -->
+        <a href="{% url 'home' %}">Back to Home</a>
+
+        <!-- home.html -->
+        <a href="{% url 'post_detail' post.id %}"><h2>{{ post.title | title }}</h2></a>
+    - {% url 'home' %}                -> /post/home/
+      {% url 'post_detail' post.id %} -> /post/1/  (value after the name fills <int:id>)
+    - Change 'post/' to 'posts/' in urls.py -> all links update automatically (one place only).
+    - Example: change home URL from 'home/' to 'main/' in blog/posts/urls.py:
+        path('main/', views.home, name='home'),   # path changed, name stays 'home'
+      Hard-coded link in post.html:
+        <a href="/post/home/">Back to Home</a>
+          -> still goes to /post/home/ -> no longer exists -> 404 Page not found
+          -> must find and fix /post/home/ by hand everywhere
+      url tag in post.html:
+        <a href="{% url 'home' %}">Back to Home</a>
+          1. finds name='home' -> now points to 'main/'
+          2. adds prefix 'post/' from blog/urls.py
+          3. link becomes /post/main/ automatically -> works
+    - Lesson: the NAME stays the same, only the path changes.
+      Links using the name follow the change; hard-coded links break.
