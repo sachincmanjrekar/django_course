@@ -340,3 +340,17 @@ Template filters
         title             -> first letter of every word uppercase
         truncatechars:N   -> cut to N characters, INCLUDING the "…"
         truncatewords:N   -> keep first N words, then add "…"
+
+Showing a single post (post.html)
+    - blog/posts/templates/posts/home.html -> each title links to its post:
+        <a href="/post/{{ post.id }}/"><h2>{{ post.title | title }}</h2></a>
+    - blog/posts/urls.py -> '<int:id>/' sends the request to post_detail (as before).
+    - blog/posts/views.py -> post_detail() finds the post and returns a template:
+        return render(request, 'posts/post.html', {"post_dict": post_dict})
+    - blog/posts/templates/posts/post.html (new) -> shows that one post:
+        <h1>{{ post_dict.title | title }}</h1>
+        <p>{{ post_dict.content }}</p>
+    - **http://127.0.0.1:8000/post/home/** lists posts; click one ->
+      **http://127.0.0.1:8000/post/1/** shows the full content.
+    - Hard-coded link again (/post/...). Template version of reverse() is the url tag:
+        <a href="{% url 'post_detail' post.id %}">

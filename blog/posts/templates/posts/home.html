@@ -11,7 +11,7 @@
             <h1>Blog Posts</h1>
                     {% for post in posts %}
             <div>
-                <h2>{{ post.title | title}}</h2>
+                <a href="/post/{{ post.id }}/"><h2>{{ post.title | title}}</h2></a>
                 <p>{{ post.content| truncatewords:4 }}</p>
             </div>
             {% empty %}

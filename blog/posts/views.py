@@ -50,14 +50,8 @@ def post_detail(request, id):
     if not post_dict:
         return HttpResponseNotFound("Post not found") 
     
-    html = f'''
-        <div>
-            <h2>{post_dict["id"]}-{post_dict["title"]}</h2>
-            <p>{post_dict["content"]}</p>
-        </div>
-    '''
 
-    return HttpResponse(html)
+    return render(request, 'posts/post.html', {"post_dict": post_dict})
 
 
 def google(request, id):
