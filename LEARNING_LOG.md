@@ -254,3 +254,20 @@ Passing variables to a template (context)
     - Browser receives plain HTML: <h1>Welcome - Sachin</h1>
     - Open **http://127.0.0.1:8000/post/home/** -> "Welcome - Sachin"
     - Change the value in views.py -> page changes; home.html stays the same.
+
+for tag in a template
+    - blog/posts/views.py:
+        return render(request, 'posts/home.html', {'posts': post_list})
+    - blog/posts/templates/posts/home.html:
+        {% for post in posts %}
+            <div>
+                <h2>{{ post.title }}</h2>
+                <p>{{ post.content }}</p>
+            </div>
+        {% endfor %}
+    - {% ... %} = tag (logic: for, if, ...);  {{ ... }} = variable (outputs a value).
+    - {% for post in posts %} repeats the block once for each item in post_list.
+    - {% endfor %} is required (templates have no indentation rules like Python).
+    - {{ post.title }} -> templates use a DOT even for dictionaries
+      (in Python it would be post["title"]).
+    - Open **http://127.0.0.1:8000/post/home/** -> shows all 3 posts.
