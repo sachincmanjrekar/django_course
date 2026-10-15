@@ -395,3 +395,9 @@ Back to Home link and the url tag
         template:  {% url 'post_detail' 1 %}          -> /post/1/
     - Still hard-coded in home.html: <a href="/post/{{ post.id }}/">
       fix would be: <a href="{% url 'post_detail' post.id %}">
+    - Fixed in blog/posts/templates/posts/home.html:
+        <a href="{% url 'post_detail' post.id %}"><h2>{{ post.title | title }}</h2></a>
+          -> /post/1/, /post/2/, /post/3/
+          (same as reverse('post_detail', args=[post.id]) in views.py)
+    - Now both templates use {% url %}; no hard-coded post links left.
+      Change 'post/' in blog/urls.py -> every link follows automatically.
