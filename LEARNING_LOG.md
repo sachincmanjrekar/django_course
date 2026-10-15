@@ -271,3 +271,27 @@ for tag in a template
     - {{ post.title }} -> templates use a DOT even for dictionaries
       (in Python it would be post["title"]).
     - Open **http://127.0.0.1:8000/post/home/** -> shows all 3 posts.
+
+if tag in a template
+    - blog/posts/templates/posts/home.html:
+        {% if posts %}
+            <h1>Blog Posts</h1>
+            {% for post in posts %}
+                <div>
+                    <h2>{{ post.title }}</h2>
+                    <p>{{ post.content }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h1>No posts available.</h1>
+        {% endif %}
+    - {% if posts %} is true when posts has items; an empty list is false (like Python).
+    - {% else %} runs when the list is empty.
+    - {% endif %} is required to close the if.
+    - Test: uncomment  # post_list = []  in views.py -> page shows "No posts available."
+    - Shortcut: {% empty %} inside the for loop does the same:
+        {% for post in posts %}
+            ...
+        {% empty %}
+            <h1>No posts available.</h1>
+        {% endfor %}

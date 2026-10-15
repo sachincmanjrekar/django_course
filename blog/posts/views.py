@@ -22,6 +22,8 @@ post_list = [
     }
 ]
 
+# post_list = []
+
 # Create your views here.
 def home(request):
     # print(reverse('home'))

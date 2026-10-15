@@ -6,11 +6,17 @@
         <title>Blog Home Page</title>
     </head>
     <body>
-        {% for post in posts %}
+        {% if posts %}
+            <h1>Blog Posts</h1>
+                    {% for post in posts %}
             <div>
                 <h2>{{ post.title }}</h2>
                 <p>{{ post.content }}</p>
             </div>
         {% endfor %}
+        {% else %}
+            <h1>No posts available.</h1>
+        {% endif %}
+
     </body>
 </html>
