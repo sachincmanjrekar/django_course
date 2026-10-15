@@ -385,3 +385,13 @@ Back to Home link and the url tag
           3. link becomes /post/main/ automatically -> works
     - Lesson: the NAME stays the same, only the path changes.
       Links using the name follow the change; hard-coded links break.
+    - Fixed in blog/posts/templates/posts/post.html:
+        <a href="{% url 'home' %}">Back to Home</a>
+          -> /post/home/ now; becomes /post/main/ automatically if the path is renamed.
+    - {% url 'home' %} in a template is just like reverse('home') in views.py:
+        views.py:  reverse('home')                    -> "/post/home/"
+        template:  {% url 'home' %}                   -> /post/home/
+        views.py:  reverse('post_detail', args=[1])   -> "/post/1/"
+        template:  {% url 'post_detail' 1 %}          -> /post/1/
+    - Still hard-coded in home.html: <a href="/post/{{ post.id }}/">
+      fix would be: <a href="{% url 'post_detail' post.id %}">
