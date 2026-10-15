@@ -34,7 +34,7 @@ def home(request):
                 <p>{post["content"]}</p>
             </div>
         '''
-    return render(request, 'home.html')
+    return render(request, 'posts/home.html')
 
 
 def post_detail(request, id):

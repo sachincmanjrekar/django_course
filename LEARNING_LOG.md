@@ -210,3 +210,35 @@ Home page with a template (render)
         Without 'posts' there, Django never looks in posts/templates/
         -> error: TemplateDoesNotExist: home.html
     - Open **http://127.0.0.1:8000/post/home/** -> shows "Home Page".
+
+APP_DIRS: True vs False
+    - In blog/blog/settings.py, TEMPLATES:
+        'DIRS': [],
+        'APP_DIRS': True,
+    - APP_DIRS: True  -> Django searches the templates/ folder of every app in
+                         INSTALLED_APPS (e.g. posts/templates/) -> home.html found.
+    - APP_DIRS: False -> app folders are skipped; only folders listed in 'DIRS' are
+                         searched. DIRS is empty -> error: TemplateDoesNotExist: home.html
+    - Fix 1 (usual): set 'APP_DIRS': True
+    - Fix 2: keep False and list the folder yourself:
+        'DIRS': [BASE_DIR / 'posts' / 'templates'],
+        'APP_DIRS': False,
+      (DIRS is normally used for a shared project-level templates/ folder.)
+    - 'posts' in INSTALLED_APPS + 'APP_DIRS': True work together;
+      both are needed to find posts/templates/home.html.
+
+Template namespacing (posts/templates/posts/home.html)
+    - Django searches templates in this order:
+        1. folders in 'DIRS'
+        2. templates/ folder of each app, in INSTALLED_APPS order
+      It uses the FIRST home.html it finds and stops looking.
+    - Problem: if another app (or a project templates/ folder) also has home.html,
+      Django may return that one, and ours is never used.
+    - Fix: put the template in a subfolder named after the app:
+        posts/
+          templates/
+            posts/          <- extra folder named after the app
+              home.html
+    - In blog/posts/views.py:
+        return render(request, 'posts/home.html')
+      -> 'posts/home.html' can only match posts/templates/posts/home.html.
