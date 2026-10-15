@@ -401,3 +401,26 @@ Back to Home link and the url tag
           (same as reverse('post_detail', args=[post.id]) in views.py)
     - Now both templates use {% url %}; no hard-coded post links left.
       Change 'post/' in blog/urls.py -> every link follows automatically.
+
+Project-level templates folder (DIRS)
+    - By default (APP_DIRS: True) Django looks in each app's templates/ folder (e.g. posts/templates/).
+    - Another folder can be added in blog/blog/settings.py:
+        'DIRS': [BASE_DIR / "templates"],
+        'APP_DIRS': True,
+      BASE_DIR = folder with manage.py (Django_course/blog/) -> adds blog/templates/
+    - Search order:
+        1. DIRS        -> blog/templates/          (searched first)
+        2. app folders -> posts/templates/ ...      (APP_DIRS: True)
+    - Example page:
+        # blog/blog/urls.py
+        path("global/", views.global1, name="global"),
+
+        # blog/posts/views.py
+        def global1(request):
+            return render(request, 'global.html', {'name': 'sachin'})
+      'global.html' (no app prefix) is found in blog/templates/global.html
+      -> **http://127.0.0.1:8000/global/**
+    - Which to use:
+        blog/templates/          -> shared by the whole site (base layout, navbar, error pages)
+        posts/templates/posts/   -> belongs to one app (moves with the app if reused)
+    - print("BASE DIR:", BASE_DIR / "templates") in settings.py shows the path at server start.
