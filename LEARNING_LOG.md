@@ -156,7 +156,8 @@ Redirect fixed by giving URLs a name
         reverse('home')                    # -> "/post/home/"
       How it builds "/post/1/":
         1. finds name='post_detail' in posts/urls.py -> pattern '<int:id>/'
-        2. sees posts/urls.py is included under 'post/' in blog/blog/urls.py
+        2. sees posts/urls.py is included under 'post/' in blog/bloyes
+        g/urls.py
         3. joins them and fills in id: 'post/' + '1/' -> "/post/1/"
       Using it in home():
         for post in post_list:
@@ -189,3 +190,23 @@ Redirect fixed by giving URLs a name
            blog/blog/urls.py   -> 'post/' matches -> include('posts.urls')
            blog/posts/urls.py  -> '<int:id>/' matches "1/" -> views.post_detail(id=1)
            post_detail() returns the post page
+
+Home page with a template (render)
+    - blog/posts/templates/home.html -> the HTML page (<h1>Home Page</h1>).
+    - blog/blog/settings.py -> add the app to INSTALLED_APPS:
+        INSTALLED_APPS = [
+            ...
+            'posts',
+        ]
+    - blog/posts/views.py:
+        from django.shortcuts import render
+
+        def home(request):
+            return render(request, 'home.html')
+          -> finds home.html and sends it back as the response.
+    - Why settings.py is needed:
+        TEMPLATES has 'APP_DIRS': True -> Django looks for templates in the
+        templates/ folder of every app in INSTALLED_APPS.
+        Without 'posts' there, Django never looks in posts/templates/
+        -> error: TemplateDoesNotExist: home.html
+    - Open **http://127.0.0.1:8000/post/home/** -> shows "Home Page".
