@@ -6,17 +6,23 @@
         <title>Blog Home Page</title>
     </head>
     <body>
-        {% if posts %}
             <h1>Blog Posts</h1>
                     {% for post in posts %}
+                    <p>
+                        counter: {{ forloop.counter }} |
+                        counter0: {{ forloop.counter0 }} |
+                        revcounter: {{ forloop.revcounter }} |
+                        revcounter0: {{ forloop.revcounter0 }} |
+                        first: {{ forloop.first }} |
+                        last: {{ forloop.last }}
+                    </p>
             <div>
                 <h2>{{ post.title }}</h2>
                 <p>{{ post.content }}</p>
             </div>
-        {% endfor %}
-        {% else %}
-            <h1>No posts available.</h1>
-        {% endif %}
+            {% empty %}
+            <p>No posts available.</p>
+            {% endfor %}
 
     </body>
 </html>

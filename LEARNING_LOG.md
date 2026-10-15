@@ -295,3 +295,29 @@ if tag in a template
         {% empty %}
             <h1>No posts available.</h1>
         {% endfor %}
+
+empty tag and forloop variables
+    - blog/posts/templates/posts/home.html:
+        <h1>Blog Posts</h1>
+        {% for post in posts %}
+            {{ forloop.counter }}
+            <div>
+                <h2>{{ post.title }}</h2>
+                <p>{{ post.content }}</p>
+            </div>
+        {% empty %}
+            <p>No posts available.</p>
+        {% endfor %}
+    - {% empty %} runs only when posts is empty (or missing).
+      Same as the if/else version, but shorter.
+      Note: <h1>Blog Posts</h1> is outside the loop, so it shows even with no posts.
+    - forloop variables (available inside every {% for %} loop), for 3 posts:
+        forloop.counter      -> position from 1          -> 1, 2, 3
+        forloop.counter0     -> position from 0          -> 0, 1, 2
+        forloop.revcounter   -> counting down to 1       -> 3, 2, 1
+        forloop.revcounter0  -> counting down to 0       -> 2, 1, 0
+        forloop.first        -> True on the first item   -> True, False, False
+        forloop.last         -> True on the last item    -> False, False, True
+        forloop.parentloop   -> the outer loop (in nested loops)
+    - Example: {% if forloop.first %}<b>Latest</b>{% endif %} marks only the first post.
+    - Open **http://127.0.0.1:8000/post/home/** -> shows 1, 2, 3 before each post.
