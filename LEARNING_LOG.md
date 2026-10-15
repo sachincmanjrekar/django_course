@@ -321,3 +321,22 @@ empty tag and forloop variables
         forloop.parentloop   -> the outer loop (in nested loops)
     - Example: {% if forloop.first %}<b>Latest</b>{% endif %} marks only the first post.
     - Open **http://127.0.0.1:8000/post/home/** -> shows 1, 2, 3 before each post.
+
+Template filters
+    - A filter changes how a variable is shown: {{ variable | filter }}
+    - Filters can be chained; they run left to right:
+        {{ name | capfirst | truncatechars:2 }}
+    - Filter argument comes after a colon, with NO space:
+        truncatechars:2    -> correct
+        truncatechars: 2   -> error: truncatechars requires 2 arguments, 1 provided
+    - blog/posts/views.py:
+        return render(request, 'posts/home.html', {'posts': post_list, 'name': 'sachin'})
+    - blog/posts/templates/posts/home.html:
+        {{ name | capfirst | truncatechars:2 }}   -> "sachin" -> "Sachin" -> "S…"
+        {{ post.title | title }}                  -> "My first post" -> "My First Post"
+        {{ post.content | truncatewords:4 }}      -> "This is my first …"
+    - Filters used:
+        capfirst          -> first letter uppercase
+        title             -> first letter of every word uppercase
+        truncatechars:N   -> cut to N characters, INCLUDING the "…"
+        truncatewords:N   -> keep first N words, then add "…"
