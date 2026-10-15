@@ -242,3 +242,15 @@ Template namespacing (posts/templates/posts/home.html)
     - In blog/posts/views.py:
         return render(request, 'posts/home.html')
       -> 'posts/home.html' can only match posts/templates/posts/home.html.
+
+Passing variables to a template (context)
+    - blog/posts/views.py:
+        return render(request, 'posts/home.html', {'name': 'Sachin'})
+          -> 3rd argument = context: a dictionary of variables for the template.
+    - blog/posts/templates/posts/home.html:
+        <h1>Welcome - {{ name }}</h1>
+    - Each key ('name') becomes a template variable; {{ name }} is replaced by its
+      value ('Sachin') before the page is sent.
+    - Browser receives plain HTML: <h1>Welcome - Sachin</h1>
+    - Open **http://127.0.0.1:8000/post/home/** -> "Welcome - Sachin"
+    - Change the value in views.py -> page changes; home.html stays the same.
