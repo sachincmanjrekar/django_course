@@ -424,3 +424,74 @@ Project-level templates folder (DIRS)
         blog/templates/          -> shared by the whole site (base layout, navbar, error pages)
         posts/templates/posts/   -> belongs to one app (moves with the app if reused)
     - print("BASE DIR:", BASE_DIR / "templates") in settings.py shows the path at server start.
+
+Template inheritance (extends and block)
+    - One base layout (parent); child templates fill in only their own part.
+    - blog/templates/base.html (parent, shared layout):
+        <nav>
+            <a href="{% url 'home' %}">Back to Home</a>
+        </nav>
+        {% block body %}
+        {% endblock body %}
+        <footer>
+            FOOTER
+        </footer>
+    - blog/posts/templates/posts/post.html (child; home.html works the same way):
+        {% extends 'base.html' %}
+
+        {% block body %}
+            <h1>{{ post_dict.title | title }}</h1>
+            <p>{{ post_dict.content }}</p>
+        {% endblock body %}
+    - {% extends 'base.html' %} -> start from base.html; must be the FIRST tag in the file.
+    - {% block body %} in base = empty spot a child can fill.
+    - Child's {% block body %} ... {% endblock body %} replaces that spot.
+    - Result: every page gets the same <html>, <head>, nav and footer; only the middle changes.
+    - base.html is found in blog/templates/ because of 'DIRS': [BASE_DIR / "templates"].
+    - Benefits:
+        no repeated HTML skeleton in every template
+        "Back to Home" link lives once in base.html -> on every page
+        change nav/footer in one file only
+    - Improvement: all pages share <title>Document</title>; add
+        {% block title %}Blog{% endblock %} in base.html so each child can set its own title.
+    - Improvement done:
+        # blog/templates/base.html
+        <title>{% block title %}Blog{% endblock %}</title>
+          -> "Blog" is the default title for every page.
+
+        # blog/posts/templates/posts/post.html
+        {% block title %}{{ post_dict.title }}{% endblock %}
+          -> overrides the default; browser tab shows the post title.
+    - **http://127.0.0.1:8000/post/1/** -> tab shows "My first post"
+      **http://127.0.0.1:8000/post/home/** -> no title block in home.html -> tab shows "Blog"
+    - A child only overrides the blocks it defines; others keep the base's default content.
+
+Static files (CSS)
+    - Static files = CSS, JavaScript, images (files sent as they are, not templates).
+    - Put them in the app's static/ folder, namespaced like templates:
+        posts/
+          static/
+            posts/          <- extra folder named after the app
+              home.css
+              post.css
+    - blog/posts/static/posts/home.css:
+        body {
+            background-color: aqua;
+        }
+    - blog/blog/settings.py (already there by default):
+        STATIC_URL = 'static/'   -> static files are served under /static/...
+        'django.contrib.staticfiles' in INSTALLED_APPS -> finds each app's static/ folder
+    - blog/templates/base.html -> empty css block inside <head>:
+        {% block css %} {% endblock css %}
+    - blog/posts/templates/posts/home.html (post.html same, with post.css):
+        {% extends 'base.html' %}
+
+        {% load static %}
+        {% block css %}
+            <link rel="stylesheet" href="{% static 'posts/home.css' %}">
+        {% endblock css %}
+    - {% load static %} -> makes the {% static %} tag available in this template
+      (needed in every template that uses it, even children).
+    - {% static 'posts/home.css' %} -> /static/posts/home.css
+      (builds the URL from STATIC_URL, like {% url %} does for pages).
+    - Each page adds its own CSS through the css block in <head>.

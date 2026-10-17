@@ -58,7 +58,3 @@ def google(request, id):
     print(reverse('post_detail', args=[id]))
     url = reverse('post_detail', args=[id])
     return HttpResponseRedirect(url)
-
-
-def global1(request):
-    return render(request, 'global.html', {'name': 'sachin'})
