@@ -495,3 +495,39 @@ Static files (CSS)
     - {% static 'posts/home.css' %} -> /static/posts/home.css
       (builds the URL from STATIC_URL, like {% url %} does for pages).
     - Each page adds its own CSS through the css block in <head>.
+
+Global static file (STATICFILES_DIRS)
+    - One CSS file for the whole site, loaded once in base.html.
+    - blog/blog/settings.py:
+        STATIC_URL = 'static/'
+        STATICFILES_DIRS = [
+            BASE_DIR / "static"
+        ]
+      -> adds blog/static/ (besides each app's static/ folder);
+         like 'DIRS' for templates, but for static files.
+    - blog/static/style.css -> site-wide CSS:
+        body {
+            background-color: aqua;
+        }
+    - blog/templates/base.html:
+        {% load static %}
+        ...
+        <link rel="stylesheet" href="{% static 'style.css' %}">
+        {% block css %} {% endblock css %}
+      -> {% static 'style.css' %} -> /static/style.css (found in blog/static/)
+      -> every page that extends base.html gets it.
+      -> css block kept so a page can still add its own extra CSS.
+    - home.html and post.html no longer link their own CSS.
+    - Which to use:
+        blog/static/            -> CSS/JS used by the whole site
+        posts/static/posts/     -> files that belong to one app
+
+Removing the global static file
+    - Deleted blog/static/style.css (had: body { background-color: aqua; }).
+    - Page was still blue -> browser was showing its CACHED copy of the old CSS.
+        Fix: Ctrl + F5 (hard refresh), or F12 -> Network -> tick "Disable cache" -> refresh.
+    - base.html still had <link rel="stylesheet" href="{% static 'style.css' %}">
+        -> every page asked for a missing file -> 404 for /static/style.css in the server log.
+        Fix: removed that link line from base.html.
+    - Kept {% load static %} and {% block css %}{% endblock css %} in base.html,
+      so a page can still add its own CSS later.

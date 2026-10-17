@@ -36,7 +36,7 @@ def home(request):
                 <p>{post["content"]}</p>
             </div>
         '''
-    return render(request, 'posts/home.html', {'posts': post_list, 'name': 'sachin'})
+    return render(request, 'posts/index.html', {'posts': post_list, 'name': 'sachin'})
 
 
 def post_detail(request, id):
@@ -53,8 +53,3 @@ def post_detail(request, id):
 
     return render(request, 'posts/post.html', {"post_dict": post_dict})
 
-
-def google(request, id):
-    print(reverse('post_detail', args=[id]))
-    url = reverse('post_detail', args=[id])
-    return HttpResponseRedirect(url)
