@@ -595,3 +595,39 @@ include tag (reusable template pieces)
                          comment box); as many as you like, anywhere.
     - Benefits: index.html is shorter; the same card can be reused on other pages
       (tag page, search results) without copying.
+
+Http404 and a custom 404 page
+    - Error: AttributeError: 'Http404' object has no attribute 'get'
+        cause: return Http404()  -> Http404 is an EXCEPTION, not a response.
+        fix:   raise Http404()
+    - HttpResponseNotFound vs Http404:
+        HttpResponseNotFound("...") -> response object -> use return -> shows your exact text
+        Http404                     -> exception       -> use raise  -> shows Django's 404 page
+                                                          (your 404.html when DEBUG = False)
+      raise Http404() is the usual Django way; works even from inside helper functions.
+    - blog/posts/views.py:
+        from django.http import Http404
+
+        if not post_dict:
+            raise Http404()
+    - blog/templates/404.html (new) -> custom page, extends base.html (same navbar/footer):
+        {% extends 'base.html' %}
+
+        {% block body %}
+            <h1 class="text-danger text-center">404 - Page Not Found</h1>
+            <p>Sorry, the page you are looking for does not exist.</p>
+        {% endblock body %}
+      Django looks for a template named exactly 404.html (found in blog/templates/ via DIRS).
+    - blog/blog/settings.py:
+        DEBUG = False
+        ALLOWED_HOSTS = ["*"]
+      404.html only shows when DEBUG = False
+        (DEBUG = True -> Django's yellow developer error page instead).
+      With DEBUG = False, ALLOWED_HOSTS must be set, otherwise every request -> 400 Bad Request.
+    - Test: **http://127.0.0.1:8000/post/51/** or any made-up URL -> custom 404 page.
+    - Notes:
+        DEBUG = False -> runserver stops serving /static/ files (Bootstrap CDN still works).
+                         Switch back to DEBUG = True while developing.
+        ALLOWED_HOSTS = ["*"] only for local; on a real server list the domain, e.g. ["myblog.com"].
+        SECRET_KEY is in settings.py (public on GitHub); before deploying, move it to an
+        environment variable and generate a new one.

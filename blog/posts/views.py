@@ -1,6 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
-from django.urls import reverse
+from django.http import Http404
 
 
 
@@ -48,7 +47,7 @@ def post_detail(request, id):
             break
 
     if not post_dict:
-        return HttpResponseNotFound("Post not found") 
+        raise Http404()
     
 
     return render(request, 'posts/post.html', {"post_dict": post_dict})
