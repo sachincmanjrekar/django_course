@@ -567,3 +567,31 @@ Bootstrap templates with base.html
     - Lesson: keep shared parts (head, navbar, footer) ONLY in base.html;
       page-specific parts (posts list, pagination, single post) in the child templates.
     - Note for later: <form method='POST'> needs {% csrf_token %} inside it, otherwise 403 error.
+
+include tag (reusable template pieces)
+    - Moved the post card HTML into its own file and included it in the loop.
+    - blog/posts/templates/posts/includes/postcard.html (new) -> HTML for ONE card:
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card mb-3" style="max-width: 540px;">
+                ...
+                <h5 class="card-title fw-bold">{{ post.title }}</h5>
+                <p class="card-text fw-normal">{{ post.content }}</p>
+                <a href="{% url 'post_detail' post.id %}" class="btn btn-dark">Read More</a>
+                ...
+            </div>
+        </div>
+    - blog/posts/templates/posts/index.html:
+        {% for post in posts %}
+            {% include 'posts/includes/postcard.html' %}
+        {% endfor %}
+    - {% include %} inserts another template's content at that spot.
+    - The included template sees the SAME variables as where it is included
+      -> {{ post.title }} works in postcard.html because post comes from the for loop.
+    - Path 'posts/includes/postcard.html' is found in posts/templates/ like any template.
+    - extends vs include:
+        {% extends %} -> child fills parts of a parent; for the overall layout (base.html);
+                         only one per template, must be the first tag.
+        {% include %} -> parent pulls in a small piece; for reusable parts (cards, navbar,
+                         comment box); as many as you like, anywhere.
+    - Benefits: index.html is shorter; the same card can be reused on other pages
+      (tag page, search results) without copying.

@@ -5,25 +5,7 @@
         <h1 class="my-3">Latest</h1>
         <div class="row">
             {% for post in posts %}
-                <div class="col-sm-6 mb-3 mb-sm-0">
-                    <div class="card mb-3" style="max-width: 540px;">
-                        <div class="row g-0">
-                            <div class="col-md-4">
-                                <div class="image-container">
-                                    <img src="" class="img-fluid rounded-start" alt="...">
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="card-body">
-                                    <h5 class="card-title fw-bold">{{ post.title }}</h5>
-                                    <p class="card-text fw-normal">{{ post.content }}</p>
-                                    <p class="card-text fw-normal"><small class="text-body-secondary">5 Th August 2023</small></p>
-                                    <a href="{% url 'post_detail' post.id %}" class="btn btn-dark">Read More</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% include 'posts/includes/postcard.html' %}
             {% endfor %}
         </div>
 
