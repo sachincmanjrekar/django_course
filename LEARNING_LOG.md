@@ -631,3 +631,32 @@ Http404 and a custom 404 page
         ALLOWED_HOSTS = ["*"] only for local; on a real server list the domain, e.g. ["myblog.com"].
         SECRET_KEY is in settings.py (public on GitHub); before deploying, move it to an
         environment variable and generate a new one.
+
+Context processors (data for every template)
+    - Problem: navbar Categories dropdown lives in base.html, but data passed from one view
+      (home) only reaches that page -> dropdown empty on post page.
+    - First try: {% block categories %} in base.html's <ul class="dropdown-menu">, filled from
+      index.html with an <h1> + row/col-md-4 buttons -> buttons overlapped.
+        why: a child block replaces the parent's block WHERE THE PARENT PUT IT (inside the
+             dropdown), not where it is written in the child.
+             block placed inside {% block body %} in the child -> rendered twice.
+             .dropdown-menu is ~160px wide -> col-md-4 = ~53px each -> wide buttons overlap.
+             <ul> should only contain <li>.
+        dropdown content must be: <li><a class="dropdown-item" href="#">...</a></li>
+    - Better: context processor = function(request) -> returns a dict; Django adds that dict
+      to the context of EVERY template rendered with render().
+    - blog/posts/context_processor.py (new):
+        def cateofies(request):
+            categories = ["Technology", "Science", "Health", "Travel", "Food"]
+            return {'categories': categories}
+    - blog/blog/settings.py -> TEMPLATES -> OPTIONS -> context_processors:
+        'posts.context_processor.cateofies'      (app.file.function)
+    - blog/templates/base.html (dropdown):
+        {% for category in categories %}
+            <li><a class="dropdown-item" href="#">{{ category }}</a></li>
+        {% endfor %}
+    - Result: categories show in the dropdown on home AND post pages; no view passes them.
+    - Notes:
+        Use for data every page needs (navbar menus, site name, logged-in user).
+        Django's convention: name the file context_processors.py (not required).
+        DEBUG = True and ALLOWED_HOSTS = [] again for development.
