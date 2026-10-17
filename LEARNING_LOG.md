@@ -531,3 +531,39 @@ Removing the global static file
         Fix: removed that link line from base.html.
     - Kept {% load static %} and {% block css %}{% endblock css %} in base.html,
       so a page can still add its own CSS later.
+
+Bootstrap templates with base.html
+    - base.html (blog/templates/) = full Bootstrap layout: <head> with Bootstrap CSS/fonts,
+      navbar, footer, Bootstrap JS. Pages only fill {% block body %}.
+    - base.html fixes:
+        {% block title %}Blog{% endblock title %}  -> default tab title (empty block = blank tab)
+        ABlog / Home links: href="#" -> href="{% url 'home' %}"  (no hard-coded links)
+        Pagination moved OUT of base.html -> it would show on every page, even single posts.
+        Removed a stray </div> that closed nothing.
+        <div class="container"> now wraps navbar AND {% block body %} -> content lines up with navbar.
+    - blog/posts/templates/posts/index.html (home page, views.py renders 'posts/index.html'):
+        {% extends 'base.html' %}
+
+        {% block body %}
+            <h1 class="my-3">Latest</h1>
+            <div class="row">
+                {% for post in posts %}
+                    ...Bootstrap card: {{ post.title }}, {{ post.content }},
+                       <a href="{% url 'post_detail' post.id %}" class="btn btn-dark">Read More</a>
+                {% endfor %}
+            </div>
+            ...pagination (Previous 1 2 3 Next) - only on the home page
+        {% endblock body %}
+      Missing {% endblock body %} -> error: TemplateSyntaxError: Unclosed tag 'block'
+    - blog/posts/templates/posts/post.html (single post):
+        Was a full copied page (own <head>, navbar, footer) -> changed back to:
+        {% extends 'base.html' %}
+
+        {% block title %}{{ post_dict.title }}{% endblock title %}
+
+        {% block body %}
+            ...post title, tags, {{ post_dict.content }}, comments
+        {% endblock body %}
+    - Lesson: keep shared parts (head, navbar, footer) ONLY in base.html;
+      page-specific parts (posts list, pagination, single post) in the child templates.
+    - Note for later: <form method='POST'> needs {% csrf_token %} inside it, otherwise 403 error.
