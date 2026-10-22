@@ -1101,3 +1101,91 @@ QuerySets are lazy (proved with connection.queries)
     - Why it matters:
         can build a query step by step (filter, then order, then slice) -> one SQL at the end.
         in templates, {% for post in posts %} is where the query actually runs.
+
+Updating rows (single row and multiple rows)
+    - (examples run on my 3 posts inside a test transaction that was rolled back,
+       so the real data was NOT changed)
+    - Single row -> get the object, change attribute, save()
+        >>> p = Post.objects.get(id=1)
+        >>> p.post_title = "new title 1"
+        >>> p.save()
+        SQL: UPDATE "posts_post" SET "post_title" = 'new title 1',
+                                     "post_content" = 'content 1',
+                                     "published_date" = '2026-10-22'
+             WHERE "posts_post"."id" = 1
+        -> object already has an id -> save() does UPDATE (no id -> INSERT, see save() notes)
+        -> writes ALL columns, even the ones that did not change
+        -> auto_now=True sets published_date to today on every save()
+    - Single row, only some columns -> save(update_fields=[...])
+        >>> p.post_content = "new content 1"
+        >>> p.save(update_fields=['post_content'])
+        SQL: UPDATE "posts_post" SET "post_content" = 'new content 1' WHERE "posts_post"."id" = 1
+        -> only the listed column is written (published_date NOT updated here)
+    - Multiple rows -> filter(...).update(...)   (one SQL, no objects loaded)
+        >>> Post.objects.filter(id__gt=1).update(post_content="updated")
+        2                                         -> returns number of rows changed
+        SQL: UPDATE "posts_post" SET "post_content" = 'updated' WHERE "posts_post"."id" > 1
+        >>> Post.objects.filter(id=2).update(post_title="title two")
+        1                                         -> update() also works for one row
+        >>> Post.objects.filter(id=99).update(post_title="x")
+        0                                         -> no match = 0, no error
+        Post.objects.all().update(...)            -> changes EVERY row (careful!)
+    - Result before rollback:
+        (1, 'new title 1', 'new content 1')
+        (2, 'title two',   'updated')
+        (3, 'title 3',     'updated')
+    - save() vs update():
+        +----------------------------+----------------------------------------------+
+        | obj.save()                 | qs.update(field=value)                       |
+        +----------------------------+----------------------------------------------+
+        | one object                 | many rows at once (whatever filter matched)  |
+        | 2 queries (get + UPDATE)   | 1 query (UPDATE ... WHERE)                   |
+        | writes all columns         | writes only the given columns                |
+        | auto_now fields updated    | auto_now fields NOT updated                  |
+        | returns None               | returns number of rows changed               |
+        +----------------------------+----------------------------------------------+
+    - update() is on a QuerySet, not on one object:
+        Post.objects.get(id=1).update(...)
+            -> AttributeError: 'Post' object has no attribute 'update'  (get returns an object)
+        use Post.objects.filter(id=1).update(...) instead.
+
+Deleting rows (single row and multiple rows)
+    - (examples run on my 3 posts inside a test transaction that was rolled back,
+       so the real data was NOT deleted)
+    - Single row -> get the object, then delete()
+        >>> p = Post.objects.get(id=1)
+        >>> p.delete()
+        (1, {'posts.Post': 1})        -> (total rows deleted, {model: rows deleted})
+        SQL: DELETE FROM "posts_post" WHERE "posts_post"."id" IN (1)
+        >>> p.id
+        None                          -> object still exists in Python, but has no id now
+        >>> p.post_title
+        'title 1'                     -> values still there (p.save() would INSERT it again)
+        rows left: [2, 3]
+    - Multiple rows -> filter(...).delete()   (one SQL)
+        >>> Post.objects.filter(id__gt=1).delete()
+        (2, {'posts.Post': 2})
+        SQL: DELETE FROM "posts_post" WHERE "posts_post"."id" > 1
+        >>> Post.objects.filter(id=99).delete()
+        (0, {})                       -> no match = 0, no error
+        rows left: []
+        Post.objects.all().delete()   -> deletes EVERY row (careful, no undo!)
+    - get() + delete() on a missing row:
+        Post.objects.get(id=99).delete()
+            -> DoesNotExist: Post matching query does not exist.  (error comes from get)
+        filter(id=99).delete() -> (0, {}) instead, no error.
+    - Deleted ids are NOT reused: after deleting id 3, the next new post gets id 4
+      (AUTOINCREMENT).
+    - Summary:
+        +-------------------------------+---------------------------------------------+
+        | obj.delete()                  | qs.delete()                                 |
+        +-------------------------------+---------------------------------------------+
+        | one object                    | all rows the filter matched                 |
+        | object must exist (get first) | 0 matches -> (0, {}), no error              |
+        | returns (1, {'posts.Post': 1})| returns (count, {'posts.Post': count})      |
+        +-------------------------------+---------------------------------------------+
+    - CRUD so far with the ORM:
+        Create -> Post(...).save() / Post.objects.create(...)
+        Read   -> all(), get(), filter(), exclude(), order_by(), slicing
+        Update -> obj.save() / qs.update(...)
+        Delete -> obj.delete() / qs.delete()
