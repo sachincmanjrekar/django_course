@@ -1379,3 +1379,50 @@
         https://docs.djangoproject.com/en/6.0/ref/models/querysets/
     - Migrations (makemigrations, migrate, showmigrations, sqlmigrate):
         https://docs.djangoproject.com/en/6.0/topics/migrations/
+
+## Django admin (createsuperuser, register a model, __str__)
+
+    - Admin = ready-made website to add / edit / delete rows: http://127.0.0.1:8000/admin/
+      (path('admin/', admin.site.urls) is already in blog/blog/urls.py)
+    - python manage.py createsuperuser
+        -> asks username, email, password -> creates an admin user (mine: admin)
+        -> stored in the auth_user table (created by the first migrate)
+    - blog/posts/admin.py -> register the model so it shows in the admin:
+        from django.contrib import admin
+        from .models import Post
+
+        admin.site.register(Post)
+      -> admin home now has a POSTS section with "Posts" (+ Add)
+         list page: /admin/posts/post/  -> "3 posts"
+    - Problem: list showed Post object (3), Post object (2), Post object (1)
+        -> default text for an object = "ModelName object (id)"
+    - Fix: __str__ method in the model = text used when the object is shown/printed
+        blog/posts/models.py:
+            class Post(models.Model):
+                post_title = models.CharField(max_length=60)
+                post_content = models.TextField()
+                published_date = models.DateField(auto_now=True)
+
+                def __str__(self):
+                    return self.post_title
+      -> admin list: title 3, title 2, title 1
+      -> shell too: Post.objects.all() -> <QuerySet [<Post: title 1>, <Post: title 2>, <Post: title 3>]>
+    - Mistake I made: def __str__ NOT indented -> it was a separate function outside the
+      class, Django never used it, admin still showed "Post object (1)".
+      Indentation decides what belongs to the class -> 4 spaces inside class Post.
+    - __str__ does not change the table -> no migration needed
+      (makemigrations -> "No changes detected").
+    - Naming in the admin ("Posts", "3 posts", "Add post"):
+        Django builds the names from the class name Post automatically:
+            verbose_name        = "post"    -> class name in lower case (one row)
+            verbose_name_plural = "posts"   -> verbose_name + "s"        (many rows)
+        -> sidebar "Posts", list page "Select post to change", bottom "3 posts",
+           button "ADD POST", app section "POSTS" (app name posts).
+        Django just adds "s", it does not know English plurals:
+            class Category -> "Categorys"  (wrong)
+        Fix with class Meta inside the model:
+            class Category(models.Model):
+                ...
+                class Meta:
+                    verbose_name_plural = "Categories"
+        Convention: model class name is SINGULAR (Post, not Posts) -> one object = one post.
