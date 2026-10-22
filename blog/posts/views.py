@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from .models import Post
 
@@ -18,11 +18,6 @@ def home(request):
 
 def post_detail(request, id):
 
-    try:
-        post_dict = Post.objects.get(id=id)
-    except:
-        raise Http404()
-    
-
+    post_dict = get_object_or_404(Post, id=id)   
     return render(request, 'posts/post.html', {"post_dict": post_dict})
 

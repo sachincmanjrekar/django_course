@@ -1249,3 +1249,26 @@ Single post page from the database (get + Http404)
         Django shortcut doing the same in one line:
             from django.shortcuts import get_object_or_404
             post = get_object_or_404(Post, id=id)
+
+get_object_or_404 (shortcut)
+    - blog/posts/views.py:
+        from django.shortcuts import render, get_object_or_404
+
+        def post_detail(request, id):
+            post_dict = get_object_or_404(Post, id=id)
+            return render(request, 'posts/post.html', {"post_dict": post_dict})
+    - Replaces 4 lines:
+        try:
+            post_dict = Post.objects.get(id=id)
+        except:
+            raise Http404()
+    - get_object_or_404(Model, lookups) = Model.objects.get(lookups)
+        found     -> returns the object
+        not found -> raises Http404 for you (only for DoesNotExist, not for other errors)
+        -> also fixes the bare except problem.
+    - Any lookup works: get_object_or_404(Post, post_title="title 1")
+      (more than one match -> MultipleObjectsReturned error, same as get()).
+    - Result (checked by rendering): /post/1/, /post/2/, /post/3/ -> correct post;
+      /post/99/ -> Http404.
+    - from django.http import Http404 is not used in views.py anymore (can be removed).
+    - Similar: get_list_or_404(Post, ...) -> filter(); raises 404 if the list is empty.
