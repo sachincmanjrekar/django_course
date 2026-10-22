@@ -1005,3 +1005,30 @@ AND / OR operators (combining conditions)
         | NOT      | ~Q()  /  exclude()                    | NOT     |
         +----------+---------------------------------------+---------+
     - Q is needed for OR inside one filter(); commas can only do AND.
+
+Slicing a QuerySet (LIMIT / OFFSET)
+    - (examples run on my 3 posts, data = Post.objects.all())
+    - Works like slicing a Python list [start:stop] (stop not included):
+        >>> data[0]
+        <Post: Post object (1)>                  -> one object (index)
+        >>> data[:2]
+        <QuerySet [<Post: Post object (1)>, <Post: Post object (2)>]>   -> first 2
+        >>> data[1:3]
+        <QuerySet [<Post: Post object (2)>, <Post: Post object (3)>]>   -> skip 1, take 2
+        >>> data[1:]
+        <QuerySet [<Post: Post object (2)>, <Post: Post object (3)>]>   -> all except first
+        >>> data.order_by('-id')[:2]
+        <QuerySet [<Post: Post object (3)>, <Post: Post object (2)>]>   -> latest 2 posts
+    - SQL behind it (slice -> LIMIT / OFFSET, database does the work):
+        data[:2]   -> ... FROM "posts_post" LIMIT 2
+        data[1:3]  -> ... FROM "posts_post" LIMIT 2 OFFSET 1
+            OFFSET = how many rows to skip, LIMIT = how many rows to take
+    - Errors / differences from a list:
+        data[-1]   -> ValueError: Negative indexing is not supported.
+                      use data.last() or data.order_by('-id')[0] instead
+        data[50]   -> IndexError: list index out of range   (single index, no row)
+        data[5:]   -> <QuerySet []>                          (slice, no error)
+        data[:2].filter(id=1)
+                   -> TypeError: Cannot filter a query once a slice has been taken.
+                      -> filter / order_by FIRST, slice LAST
+    - Uses: "latest 3 posts" on the home page, pagination (page 2 = [10:20]).
