@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import Http404
+from .models import Post
 
 
 
@@ -25,17 +26,10 @@ post_list = [
 
 # Create your views here.
 def home(request):
-    # print(reverse('home'))
-    html = ""
-    for post in post_list:
-        html += f'''
-            <div>
-            <a href="/post/{post["id"]}/">
-                <h2>{post["id"]}-{post["title"]}</h2></a>
-                <p>{post["content"]}</p>
-            </div>
-        '''
-    return render(request, 'posts/index.html', {'posts': post_list, 'name': 'sachin'})
+
+    all_posts = Post.objects.all()
+    print(all_posts)
+    return render(request, 'posts/index.html', {'posts': all_posts, 'name': 'sachin'})
 
 
 def post_detail(request, id):

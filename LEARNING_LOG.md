@@ -1189,3 +1189,33 @@ Deleting rows (single row and multiple rows)
         Read   -> all(), get(), filter(), exclude(), order_by(), slicing
         Update -> obj.save() / qs.update(...)
         Delete -> obj.delete() / qs.delete()
+
+Fetching from the database and rendering in a template
+    - Before: home() used the hard-coded post_list (list of dicts).
+      Now: posts come from the database (posts_post table) with the ORM.
+    - blog/posts/views.py:
+        from .models import Post        -> . = same app folder (posts/models.py)
+
+        def home(request):
+            all_posts = Post.objects.all()
+            print(all_posts)
+            return render(request, 'posts/index.html', {'posts': all_posts, 'name': 'sachin'})
+        print(all_posts) -> shows in the runserver terminal:
+            <QuerySet [<Post: Post object (1)>, <Post: Post object (2)>, <Post: Post object (3)>]>
+    - blog/posts/templates/posts/includes/postcard.html -> use the MODEL field names:
+        {{ post.title }}    -> {{ post.post_title }}
+        {{ post.content }}  -> {{ post.post_content }}
+        5 Th August 2023    -> {{ post.published_date }}   (was hard-coded)
+        {% url 'post_detail' post.id %}  -> unchanged, id comes from the database
+    - index.html did not change: {% for post in posts %} works the same for a list of
+      dicts and for a QuerySet of objects ({{ post.x }} looks up dict key OR attribute).
+    - Flow:
+        browser /post/home/ -> urls.py -> home() -> Post.objects.all() (lazy, no SQL yet)
+        -> render() -> {% for post in posts %} runs the SQL -> HTML cards -> browser
+    - Result (checked by rendering the page):
+        titles: title 1, title 2, title 3
+        dates:  Oct. 22, 2026   -> Django formats DateField automatically
+                                   (can change later with the |date filter)
+        links:  /post/1/, /post/2/, /post/3/
+    - Note: post_detail() still uses the old post_list, so "Read More" shows the old
+      hard-coded posts, not the database ones (next step: Post.objects.get(id=id)).
