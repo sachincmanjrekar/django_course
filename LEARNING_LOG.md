@@ -1515,3 +1515,25 @@
     - admin.site = the default admin site object; admin.py files use it too
       (admin.site.register). Setting it in urls.py works because urls.py is loaded at startup;
       could also go in posts/admin.py.
+
+## Django forms: what {{ form }} renders vs what I write myself
+
+    - Template with a Django form:
+        <form method="POST">                     <- 1. form tag      -> I write it
+            {% csrf_token %}                     <- 2. CSRF token    -> I write it (POST only)
+            {{ form }}                           <- 3. fields        -> Django renders it
+            <button type="submit">Save</button>  <- 4. submit button -> I write it
+        </form>
+    - Django renders with {{ form }}:
+        <label> for each field
+        the right input for each field type (input / textarea / select)
+        name, id, required, maxlength attributes
+        error messages after a wrong submit + keeps the values already typed
+    - I write myself, and why:
+        <form method="POST" action="..."> -> Django does not know which URL to send to
+                                             or GET vs POST
+        {% csrf_token %} -> hidden security token; every POST without it -> 403 Forbidden
+                            (comment form in post.html does not have it yet)
+        submit button    -> only I know the text (Save / Comment / Login), and one page
+                            can have several forms
+    - In short: Django builds the fields; form tag, csrf_token and button wrap around them.
