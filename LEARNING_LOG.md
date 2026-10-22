@@ -1379,6 +1379,9 @@
         https://docs.djangoproject.com/en/6.0/ref/models/querysets/
     - Migrations (makemigrations, migrate, showmigrations, sqlmigrate):
         https://docs.djangoproject.com/en/6.0/topics/migrations/
+    - Admin site (ModelAdmin options: list_display, list_filter, search_fields...;
+      site_header, site_title, index_title):
+        https://docs.djangoproject.com/en/6.0/ref/contrib/admin/
 
 ## Django admin (createsuperuser, register a model, __str__)
 
@@ -1489,3 +1492,26 @@
         Both are tuples -> trailing comma for one item: ('published_date',)
         Without the comma ('published_date') is just a string -> manage.py check error
         (admin.E112: The value of 'list_filter' must be a list or tuple.)
+
+## Admin site names (site_header, site_title, index_title)
+
+    - blog/blog/urls.py (after urlpatterns):
+        admin.site.site_header = "My Blog"
+        admin.site.site_title = "Admin Portal"
+        admin.site.index_title = "Welcome to My Blog Portal"
+      (default for all 3: "Django administration" / "Django site admin" / "Site administration")
+    - Where each one shows (checked by rendering the admin pages):
+        +--------------+-------------------------------------+-------------------------------------+
+        | setting      | where                               | result                              |
+        +--------------+-------------------------------------+-------------------------------------+
+        | site_header  | big text top-left, EVERY admin page | My Blog                             |
+        | site_title   | browser TAB title, after the "|"    | ... | Admin Portal                  |
+        | index_title  | heading on the admin HOME page only | Welcome to My Blog Portal           |
+        +--------------+-------------------------------------+-------------------------------------+
+        /admin/            -> tab: "Welcome to My Blog Portal | Admin Portal"
+        /admin/posts/post/ -> tab: "Select post to change | Admin Portal"
+    - My confusion: set site_title = "Admin Portal" and expected it on the page;
+      it only shows in the browser tab -> index_title is the heading on the home page.
+    - admin.site = the default admin site object; admin.py files use it too
+      (admin.site.register). Setting it in urls.py works because urls.py is loaded at startup;
+      could also go in posts/admin.py.

@@ -23,3 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('post/', include('posts.urls')),
 ]
+
+
+admin.site.site_header = "My Blog"
+admin.site.site_title = "Admin Portal"
+admin.site.index_title = "Welcome to My Blog Portal"
