@@ -1475,4 +1475,17 @@
     - It is a tuple ( ... ) -> one item needs a comma: ('post_title',)
     - python manage.py check -> "System check identified no issues" (checks admin settings too,
       e.g. a wrong field name in list_display gives an error here).
-    - More options for later: search_fields, list_filter, ordering, list_per_page.
+    - More options for later: ordering, list_per_page.
+    - list_filter and search_fields (added next):
+            list_filter = ('published_date',)
+            search_fields = ('post_title',)
+        list_filter -> "FILTER" sidebar on the right of the list page.
+            for a date field: Any date / Today / Past 7 days / This month / This year
+            -> click one -> URL gets ?published_date__gte=...  (field lookups again)
+        search_fields -> search box above the list.
+            searches post_title with icontains (ignore case, anywhere in the text)
+            -> SQL: WHERE post_title LIKE '%word%'
+            more fields: ('post_title', 'post_content') -> matches in title OR content
+        Both are tuples -> trailing comma for one item: ('published_date',)
+        Without the comma ('published_date') is just a string -> manage.py check error
+        (admin.E112: The value of 'list_filter' must be a list or tuple.)
