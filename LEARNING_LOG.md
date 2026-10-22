@@ -660,3 +660,13 @@ Context processors (data for every template)
         Use for data every page needs (navbar menus, site name, logged-in user).
         Django's convention: name the file context_processors.py (not required).
         DEBUG = True and ALLOWED_HOSTS = [] again for development.
+
+STATICFILES_DIRS emptied (no global static folder)
+    - blog/static/ (global style.css) was deleted earlier; settings still pointed to it.
+    - blog/blog/settings.py:
+        STATICFILES_DIRS = []          (was [BASE_DIR / "static"])
+    - why: a folder listed in STATICFILES_DIRS that does not exist -> Django warning
+      (staticfiles.W004: The directory ... does not exist).
+    - App static files (posts/static/posts/...) still work without it -> found via APP_DIRS-like
+      app lookup (AppDirectoriesFinder). STATICFILES_DIRS is only for extra, project-level folders.
+    - Add it back when a global static/ folder is created again.
