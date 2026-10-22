@@ -757,3 +757,52 @@ Changing a model (second migration)
         3. DROP TABLE "posts_post"
         4. ALTER TABLE "new__posts_post" RENAME TO "posts_post"
     - Each model change = one new numbered migration file; old ones stay untouched.
+
+Django shell: creating objects (save and create)
+    - python manage.py shell
+        -> Python prompt with the project loaded (settings, models ready to use).
+    - Way 1: object + save()  (2 steps)
+        >>> from posts.models import Post
+        >>> post = Post(post_title="title 1", post_content="content 1")
+        >>> post.save()
+        -> Post(...) only builds the object in memory (post.id is None);
+           save() runs INSERT -> row in db, post.id = 1.
+        -> useful when you want to change fields before saving:
+             post.post_title = "new title"
+             post.save()      -> same object again -> UPDATE (not a new row)
+    - Way 2: objects.create()  (1 step)
+        >>> Post.objects.create(post_title="title 2", post_content="content 2")
+        -> builds AND saves in one call, returns the saved object (id = 2).
+    - Creating object (course slide):
+
+                +------------------------------+
+                |  post1 = Post(title=...)     |
+                |  post1.save()                |
+                +------------------------------+
+                               |
+                               v
+                       +---------------+
+                       |  DJANGO ORM   |   (turns Python into SQL)
+                       +---------------+
+                               |
+                               v
+                       +---------------+
+                       | SQL - INSERT  |   -> new row in posts_post
+                       +---------------+
+
+    - Making query (course slide):
+
+            Post  .  objects  .  create(title=...)
+             |          |            |
+             v          v            v
+           Model   Model Manager  Query Method
+          (table)  (door to the   (what to do: create, all,
+                    table)         get, filter...)
+
+    - Post.objects = the "manager" -> the door to the table (create, all, get, filter...).
+    - published_date not passed -> auto_now=True fills today's date automatically.
+    - Check: Post.objects.all()  -> <QuerySet [<Post: Post object (1)>, <Post: Post object (2)>]>
+    - Result in db (posts_post):
+        id 1 | title 1 | content 1 | 2026-10-22
+        id 2 | title 2 | content 2 | 2026-10-22
+    - exit() -> leave the shell.
