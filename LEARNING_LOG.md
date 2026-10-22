@@ -1,4 +1,5 @@
-django-admin startproject blog
+## django-admin startproject blog
+
     - Creates a new Django project named "blog".
     - Makes a folder "blog" containing:
         manage.py        -> tool to run project commands (runserver, migrate, startapp, ...)
@@ -9,19 +10,23 @@ django-admin startproject blog
             asgi.py      -> entry point for async web servers
             wsgi.py      -> entry point for regular web servers
 
-python manage.py runserver
+## python manage.py runserver
+
     - Starts the development server at http://127.0.0.1:8000/
 
-python manage.py runserver 1223
+## python manage.py runserver 1223
+
     - Starts the development server on port 1223 instead (http://127.0.0.1:1223/).
 
-Django apps (understanding)
+## Django apps (understanding)
+
     - A project is like a car; apps are its parts (music player, engine, AC, ...).
     - Each app is independent and does one job.
     - An app can be copied and reused in another project,
       like moving the music player to another car.
 
-python manage.py startapp posts
+## python manage.py startapp posts
+
     - Creates a new app named "posts" (run inside the folder with manage.py).
     - Makes a folder "posts" containing:
         __init__.py   -> marks the folder as a Python package
@@ -32,17 +37,20 @@ python manage.py startapp posts
         tests.py      -> tests for this app
         views.py      -> functions that handle requests and return responses
 
-URLs and Views
+## URLs and Views
+
     - urls.py  -> maps a URL (web address) to a view.
     - views.py -> fetches data from the database, checks authentication,
                   and sends the response back to the client.
 
-Page not found (404)
+## Page not found (404)
+
     - Removed path('post/helloworld/', views.hello_world) from blog/blog/urls.py.
     - Ran python manage.py runserver and opened http://127.0.0.1:8000/post/helloworld/
       -> "Page not found", because Django only serves URLs listed in urlpatterns.
 
-include() - connecting app URLs to the project
+## include() - connecting app URLs to the project
+
     - blog/blog/urls.py (project):
         from django.urls import include, path
         path('post/', include('posts.urls'))
@@ -53,20 +61,23 @@ include() - connecting app URLs to the project
     - Result: post/ + helloworld/ = http://127.0.0.1:8000/post/helloworld/ -> "Hello, World!"
     - Each app keeps its own URLs, so the app can be reused in another project.
 
-ROOT_URLCONF - where Django starts looking for URLs
+## ROOT_URLCONF - where Django starts looking for URLs
+
     - In blog/blog/settings.py:
         ROOT_URLCONF = 'blog.urls'
     - Tells Django the main URL file is blog/blog/urls.py.
     - Every request is matched there first; include() then passes it on to app URL files (e.g. posts/urls.py).
 
-HTML response with h1 tag
+## HTML response with h1 tag
+
     - In blog/posts/views.py:
         def hello_world(request):
             return HttpResponse('<h1>Hello, World!</h1>')
     - HttpResponse can return HTML; the browser shows "Hello, World!" as a big heading.
     - Open **http://127.0.0.1:8000/post/helloworld/**
 
-Sample dynamic URL
+## Sample dynamic URL
+
     - In blog/posts/urls.py:
         path('<id>/', views.post_detail)
           -> <id> matches any value in that part of the URL and passes it to the view.
@@ -77,21 +88,24 @@ Sample dynamic URL
         -> shows "Post detail page for post sample_dynamic_url"
     - id is received as a string (print(type(id)) -> <class 'str'>).
 
-Dynamic URL with int converter
+## Dynamic URL with int converter
+
     - In blog/posts/urls.py:
         path('<int:id>/', views.post_detail)
           -> <int:id> only matches whole numbers; id is passed to the view as int.
     - **http://127.0.0.1:8000/post/2/** -> "Post detail page for post 2"
     - **http://127.0.0.1:8000/post/sample_dynamic_url/** -> Page not found (404), not a number.
 
-Clickable posts on home page
+## Clickable posts on home page
+
     - In blog/posts/views.py, home() wraps each post title in a link:
         <a href="/post/{post["id"]}/">
             <h2>{post["id"]}-{post["title"]}</h2>
         </a>
     - **http://127.0.0.1:8000/post/home/** -> click a title to open its detail page (e.g. /post/1/).
 
-What happens when a link is clicked (e.g. /post/1/)
+## What happens when a link is clicked (e.g. /post/1/)
+
     Click "/post/1/"
        |
        v
@@ -107,7 +121,8 @@ What happens when a link is clicked (e.g. /post/1/)
       in blog/urls.py, then posts/urls.py, and sends back the page. Address bar stays /post/1/.
     - Redirect = server tells the browser to go to a different URL (address bar changes).
 
-Sample redirect URL
+## Sample redirect URL
+
     - In blog/blog/urls.py:
         path('google/', views.google)
     - In blog/posts/views.py:
@@ -118,7 +133,8 @@ Sample redirect URL
     - Open **http://127.0.0.1:8000/google/** -> browser is sent to https://www.google.com
       (address bar changes, unlike the /post/1/ lookup above).
 
-Redirect fails with hard-coded URL
+## Redirect fails with hard-coded URL
+
     - In blog/blog/urls.py the prefix was changed from 'post/' to 'posts/', and:
         path('<int:id>/', views.google)
     - In blog/posts/views.py the redirect still uses the old path:
@@ -137,7 +153,8 @@ Redirect fails with hard-coded URL
             return redirect('post_detail', id=id)   # Django builds "/posts/1/" itself
       (reverse('post_detail', args=[id]) gives the URL as a string.)
 
-Redirect fixed by giving URLs a name
+## Redirect fixed by giving URLs a name
+
     - In blog/posts/urls.py:
         path('home/', views.home, name='home'),
         path('<int:id>/', views.post_detail, name='post_detail')
@@ -191,7 +208,8 @@ Redirect fixed by giving URLs a name
            blog/posts/urls.py  -> '<int:id>/' matches "1/" -> views.post_detail(id=1)
            post_detail() returns the post page
 
-Home page with a template (render)
+## Home page with a template (render)
+
     - blog/posts/templates/home.html -> the HTML page (<h1>Home Page</h1>).
     - blog/blog/settings.py -> add the app to INSTALLED_APPS:
         INSTALLED_APPS = [
@@ -211,7 +229,8 @@ Home page with a template (render)
         -> error: TemplateDoesNotExist: home.html
     - Open **http://127.0.0.1:8000/post/home/** -> shows "Home Page".
 
-APP_DIRS: True vs False
+## APP_DIRS: True vs False
+
     - In blog/blog/settings.py, TEMPLATES:
         'DIRS': [],
         'APP_DIRS': True,
@@ -227,7 +246,8 @@ APP_DIRS: True vs False
     - 'posts' in INSTALLED_APPS + 'APP_DIRS': True work together;
       both are needed to find posts/templates/home.html.
 
-Template namespacing (posts/templates/posts/home.html)
+## Template namespacing (posts/templates/posts/home.html)
+
     - Django searches templates in this order:
         1. folders in 'DIRS'
         2. templates/ folder of each app, in INSTALLED_APPS order
@@ -243,7 +263,8 @@ Template namespacing (posts/templates/posts/home.html)
         return render(request, 'posts/home.html')
       -> 'posts/home.html' can only match posts/templates/posts/home.html.
 
-Passing variables to a template (context)
+## Passing variables to a template (context)
+
     - blog/posts/views.py:
         return render(request, 'posts/home.html', {'name': 'Sachin'})
           -> 3rd argument = context: a dictionary of variables for the template.
@@ -255,7 +276,8 @@ Passing variables to a template (context)
     - Open **http://127.0.0.1:8000/post/home/** -> "Welcome - Sachin"
     - Change the value in views.py -> page changes; home.html stays the same.
 
-for tag in a template
+## for tag in a template
+
     - blog/posts/views.py:
         return render(request, 'posts/home.html', {'posts': post_list})
     - blog/posts/templates/posts/home.html:
@@ -272,7 +294,8 @@ for tag in a template
       (in Python it would be post["title"]).
     - Open **http://127.0.0.1:8000/post/home/** -> shows all 3 posts.
 
-if tag in a template
+## if tag in a template
+
     - blog/posts/templates/posts/home.html:
         {% if posts %}
             <h1>Blog Posts</h1>
@@ -296,7 +319,8 @@ if tag in a template
             <h1>No posts available.</h1>
         {% endfor %}
 
-empty tag and forloop variables
+## empty tag and forloop variables
+
     - blog/posts/templates/posts/home.html:
         <h1>Blog Posts</h1>
         {% for post in posts %}
@@ -322,7 +346,8 @@ empty tag and forloop variables
     - Example: {% if forloop.first %}<b>Latest</b>{% endif %} marks only the first post.
     - Open **http://127.0.0.1:8000/post/home/** -> shows 1, 2, 3 before each post.
 
-Template filters
+## Template filters
+
     - A filter changes how a variable is shown: {{ variable | filter }}
     - Filters can be chained; they run left to right:
         {{ name | capfirst | truncatechars:2 }}
@@ -341,7 +366,8 @@ Template filters
         truncatechars:N   -> cut to N characters, INCLUDING the "…"
         truncatewords:N   -> keep first N words, then add "…"
 
-Showing a single post (post.html)
+## Showing a single post (post.html)
+
     - blog/posts/templates/posts/home.html -> each title links to its post:
         <a href="/post/{{ post.id }}/"><h2>{{ post.title | title }}</h2></a>
     - blog/posts/urls.py -> '<int:id>/' sends the request to post_detail (as before).
@@ -355,7 +381,8 @@ Showing a single post (post.html)
     - Hard-coded link again (/post/...). Template version of reverse() is the url tag:
         <a href="{% url 'post_detail' post.id %}">
 
-Back to Home link and the url tag
+## Back to Home link and the url tag
+
     - blog/posts/templates/posts/post.html:
         <a href="/post/home/">Back to Home</a>
     - Problem: post URLs are now hard-coded in two places:
@@ -402,7 +429,8 @@ Back to Home link and the url tag
     - Now both templates use {% url %}; no hard-coded post links left.
       Change 'post/' in blog/urls.py -> every link follows automatically.
 
-Project-level templates folder (DIRS)
+## Project-level templates folder (DIRS)
+
     - By default (APP_DIRS: True) Django looks in each app's templates/ folder (e.g. posts/templates/).
     - Another folder can be added in blog/blog/settings.py:
         'DIRS': [BASE_DIR / "templates"],
@@ -425,7 +453,8 @@ Project-level templates folder (DIRS)
         posts/templates/posts/   -> belongs to one app (moves with the app if reused)
     - print("BASE DIR:", BASE_DIR / "templates") in settings.py shows the path at server start.
 
-Template inheritance (extends and block)
+## Template inheritance (extends and block)
+
     - One base layout (parent); child templates fill in only their own part.
     - blog/templates/base.html (parent, shared layout):
         <nav>
@@ -466,7 +495,8 @@ Template inheritance (extends and block)
       **http://127.0.0.1:8000/post/home/** -> no title block in home.html -> tab shows "Blog"
     - A child only overrides the blocks it defines; others keep the base's default content.
 
-Static files (CSS)
+## Static files (CSS)
+
     - Static files = CSS, JavaScript, images (files sent as they are, not templates).
     - Put them in the app's static/ folder, namespaced like templates:
         posts/
@@ -496,7 +526,8 @@ Static files (CSS)
       (builds the URL from STATIC_URL, like {% url %} does for pages).
     - Each page adds its own CSS through the css block in <head>.
 
-Global static file (STATICFILES_DIRS)
+## Global static file (STATICFILES_DIRS)
+
     - One CSS file for the whole site, loaded once in base.html.
     - blog/blog/settings.py:
         STATIC_URL = 'static/'
@@ -522,7 +553,8 @@ Global static file (STATICFILES_DIRS)
         blog/static/            -> CSS/JS used by the whole site
         posts/static/posts/     -> files that belong to one app
 
-Removing the global static file
+## Removing the global static file
+
     - Deleted blog/static/style.css (had: body { background-color: aqua; }).
     - Page was still blue -> browser was showing its CACHED copy of the old CSS.
         Fix: Ctrl + F5 (hard refresh), or F12 -> Network -> tick "Disable cache" -> refresh.
@@ -532,7 +564,8 @@ Removing the global static file
     - Kept {% load static %} and {% block css %}{% endblock css %} in base.html,
       so a page can still add its own CSS later.
 
-Bootstrap templates with base.html
+## Bootstrap templates with base.html
+
     - base.html (blog/templates/) = full Bootstrap layout: <head> with Bootstrap CSS/fonts,
       navbar, footer, Bootstrap JS. Pages only fill {% block body %}.
     - base.html fixes:
@@ -568,7 +601,8 @@ Bootstrap templates with base.html
       page-specific parts (posts list, pagination, single post) in the child templates.
     - Note for later: <form method='POST'> needs {% csrf_token %} inside it, otherwise 403 error.
 
-include tag (reusable template pieces)
+## include tag (reusable template pieces)
+
     - Moved the post card HTML into its own file and included it in the loop.
     - blog/posts/templates/posts/includes/postcard.html (new) -> HTML for ONE card:
         <div class="col-sm-6 mb-3 mb-sm-0">
@@ -596,7 +630,8 @@ include tag (reusable template pieces)
     - Benefits: index.html is shorter; the same card can be reused on other pages
       (tag page, search results) without copying.
 
-Http404 and a custom 404 page
+## Http404 and a custom 404 page
+
     - Error: AttributeError: 'Http404' object has no attribute 'get'
         cause: return Http404()  -> Http404 is an EXCEPTION, not a response.
         fix:   raise Http404()
@@ -632,7 +667,8 @@ Http404 and a custom 404 page
         SECRET_KEY is in settings.py (public on GitHub); before deploying, move it to an
         environment variable and generate a new one.
 
-Context processors (data for every template)
+## Context processors (data for every template)
+
     - Problem: navbar Categories dropdown lives in base.html, but data passed from one view
       (home) only reaches that page -> dropdown empty on post page.
     - First try: {% block categories %} in base.html's <ul class="dropdown-menu">, filled from
@@ -661,7 +697,8 @@ Context processors (data for every template)
         Django's convention: name the file context_processors.py (not required).
         DEBUG = True and ALLOWED_HOSTS = [] again for development.
 
-STATICFILES_DIRS emptied (no global static folder)
+## STATICFILES_DIRS emptied (no global static folder)
+
     - blog/static/ (global style.css) was deleted earlier; settings still pointed to it.
     - blog/blog/settings.py:
         STATICFILES_DIRS = []          (was [BASE_DIR / "static"])
@@ -671,7 +708,8 @@ STATICFILES_DIRS emptied (no global static folder)
       app lookup (AppDirectoriesFinder). STATICFILES_DIRS is only for extra, project-level folders.
     - Add it back when a global static/ folder is created again.
 
-Models (first model: Post)
+## Models (first model: Post)
+
     - Model = Python class that describes a database table; each attribute = a column.
       Django creates the table from it (no SQL needed).
     - blog/posts/models.py:
@@ -693,7 +731,8 @@ Models (first model: Post)
         python manage.py migrate        -> creates the table in db.sqlite3
       makemigrations --dry-run -> shows what would be created without writing files.
 
-Migrations (makemigrations and migrate)
+## Migrations (makemigrations and migrate)
+
     - Workflow (from the course slide):
 
         +------------------+     +------------------+     +--------------------+
@@ -736,7 +775,8 @@ Migrations (makemigrations and migrate)
     - Migration files belong in the repo (they are the history of the database structure);
       never edit or delete applied ones by hand.
 
-Changing a model (second migration)
+## Changing a model (second migration)
+
     - blog/posts/models.py:
         published_date = models.DateTimeField(auto_now=True)   (before)
         published_date = models.DateField(auto_now=True)       (after)
@@ -758,7 +798,8 @@ Changing a model (second migration)
         4. ALTER TABLE "new__posts_post" RENAME TO "posts_post"
     - Each model change = one new numbered migration file; old ones stay untouched.
 
-Django shell: creating objects (save and create)
+## Django shell: creating objects (save and create)
+
     - python manage.py shell
         -> Python prompt with the project loaded (settings, models ready to use).
     - Way 1: object + save()  (2 steps)
@@ -807,7 +848,8 @@ Django shell: creating objects (save and create)
         id 2 | title 2 | content 2 | 2026-10-22
     - exit() -> leave the shell.
 
-Seeing the SQL Django runs (connection.queries)
+## Seeing the SQL Django runs (connection.queries)
+
     - What I ran in python manage.py shell:
         >>> from posts.models import Post
         >>> Post
@@ -833,7 +875,8 @@ Seeing the SQL Django runs (connection.queries)
       (can be made readable later with a __str__ method in the model.)
     - connection.queries only records queries when DEBUG = True.
 
-all() and QuerySet (reading rows)
+## all() and QuerySet (reading rows)
+
     - What I ran in python manage.py shell:
         >>> Post.objects.all()
         <QuerySet [<Post: Post object (1)>, <Post: Post object (2)>, <Post: Post object (3)>]>
@@ -883,7 +926,8 @@ all() and QuerySet (reading rows)
     - all() returns ALL rows; the SQL runs only when the data is actually used
       (printing, indexing, looping) -> QuerySets are "lazy".
 
-get(), filter(), exclude() (reading specific rows)
+## get(), filter(), exclude() (reading specific rows)
+
     - (examples run on my 3 posts: title 1, title 2, title 3)
     - get() -> exactly ONE object (not a QuerySet)
         >>> Post.objects.get(id=1)
@@ -923,7 +967,8 @@ get(), filter(), exclude() (reading specific rows)
         +-----------+--------------------+----------------------------------+
     - Can chain: Post.objects.filter(id__gt=1).exclude(post_title="title 3")
 
-More QuerySet methods (order_by, reverse, values, count, contains, first, last)
+## More QuerySet methods (order_by, reverse, values, count, contains, first, last)
+
     - What I ran in python manage.py shell (data = Post.objects.all()):
         >>> s1 = Post.objects.get(id=2)
         >>> s1.id
@@ -970,7 +1015,8 @@ More QuerySet methods (order_by, reverse, values, count, contains, first, last)
       -> error message says WHICH object: 'Post' (model), 'Manager' (objects),
          'QuerySet' (result of all/filter/order_by).
 
-AND / OR operators (combining conditions)
+## AND / OR operators (combining conditions)
+
     - (examples run on my 3 posts: title 1, title 2, title 3)
     - AND -> row must match ALL conditions
         1. commas inside filter():
@@ -1006,7 +1052,8 @@ AND / OR operators (combining conditions)
         +----------+---------------------------------------+---------+
     - Q is needed for OR inside one filter(); commas can only do AND.
 
-Slicing a QuerySet (LIMIT / OFFSET)
+## Slicing a QuerySet (LIMIT / OFFSET)
+
     - (examples run on my 3 posts, data = Post.objects.all())
     - Works like slicing a Python list [start:stop] (stop not included):
         >>> data[0]
@@ -1033,7 +1080,8 @@ Slicing a QuerySet (LIMIT / OFFSET)
                       -> filter / order_by FIRST, slice LAST
     - Uses: "latest 3 posts" on the home page, pagination (page 2 = [10:20]).
 
-Field lookups (field__lookup=value)
+## Field lookups (field__lookup=value)
+
     - Syntax: Post.objects.filter(fieldname__lookup=value)   -> DOUBLE underscore
       works in filter(), exclude(), get().
       filter(id=1) is short for filter(id__exact=1).
@@ -1071,7 +1119,8 @@ Field lookups (field__lookup=value)
     - Wrong lookup name -> error, e.g. filter(id__bigger=1) ->
         FieldError: Unsupported lookup 'bigger' for BigAutoField or join on the field not permitted.
 
-QuerySets are lazy (proved with connection.queries)
+## QuerySets are lazy (proved with connection.queries)
+
     - Lazy = building a QuerySet does NOT touch the database; SQL runs only when the
       data is actually needed (evaluated).
     - Test (DEBUG = True, counting queries with connection.queries):
@@ -1102,7 +1151,8 @@ QuerySets are lazy (proved with connection.queries)
         can build a query step by step (filter, then order, then slice) -> one SQL at the end.
         in templates, {% for post in posts %} is where the query actually runs.
 
-Updating rows (single row and multiple rows)
+## Updating rows (single row and multiple rows)
+
     - (examples run on my 3 posts inside a test transaction that was rolled back,
        so the real data was NOT changed)
     - Single row -> get the object, change attribute, save()
@@ -1149,7 +1199,8 @@ Updating rows (single row and multiple rows)
             -> AttributeError: 'Post' object has no attribute 'update'  (get returns an object)
         use Post.objects.filter(id=1).update(...) instead.
 
-Deleting rows (single row and multiple rows)
+## Deleting rows (single row and multiple rows)
+
     - (examples run on my 3 posts inside a test transaction that was rolled back,
        so the real data was NOT deleted)
     - Single row -> get the object, then delete()
@@ -1190,7 +1241,8 @@ Deleting rows (single row and multiple rows)
         Update -> obj.save() / qs.update(...)
         Delete -> obj.delete() / qs.delete()
 
-Fetching from the database and rendering in a template
+## Fetching from the database and rendering in a template
+
     - Before: home() used the hard-coded post_list (list of dicts).
       Now: posts come from the database (posts_post table) with the ORM.
     - blog/posts/views.py:
@@ -1220,7 +1272,8 @@ Fetching from the database and rendering in a template
     - Note: post_detail() still uses the old post_list, so "Read More" shows the old
       hard-coded posts, not the database ones (next step: Post.objects.get(id=id)).
 
-Single post page from the database (get + Http404)
+## Single post page from the database (get + Http404)
+
     - blog/posts/views.py:
         post_list (hard-coded dicts) removed -> all data now comes from the database.
 
@@ -1250,7 +1303,8 @@ Single post page from the database (get + Http404)
             from django.shortcuts import get_object_or_404
             post = get_object_or_404(Post, id=id)
 
-get_object_or_404 (shortcut)
+## get_object_or_404 (shortcut)
+
     - blog/posts/views.py:
         from django.shortcuts import render, get_object_or_404
 
@@ -1273,7 +1327,8 @@ get_object_or_404 (shortcut)
     - from django.http import Http404 is not used in views.py anymore (can be removed).
     - Similar: get_list_or_404(Post, ...) -> filter(); raises 404 if the list is empty.
 
-Aggregate functions (Count, Sum, Avg, Max, Min)
+## Aggregate functions (Count, Sum, Avg, Max, Min)
+
     - Aggregate = one value calculated from MANY rows (count, total, average, biggest, smallest).
       Returns a DICTIONARY, not a QuerySet.
     - from django.db.models import Count, Sum, Avg, Max, Min
@@ -1312,7 +1367,8 @@ Aggregate functions (Count, Sum, Avg, Max, Min)
         Post.objects.count()               -> 3 (just the number)
         Post.objects.aggregate(Count('id')) -> {'id__count': 3} (dict, can add more functions)
 
-Helpful resources (Django docs: models, fields, querysets, migrations)
+## Helpful resources (Django docs: models, fields, querysets, migrations)
+
     - Models (how to define models, fields, Meta, methods):
         https://docs.djangoproject.com/en/6.0/topics/db/models/
     - Model field reference (CharField, TextField, DateField, options like max_length,
