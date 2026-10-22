@@ -1537,3 +1537,47 @@
         submit button    -> only I know the text (Save / Comment / Login), and one page
                             can have several forms
     - In short: Django builds the fields; form tag, csrf_token and button wrap around them.
+
+## GET vs POST (HTTP methods)
+
+    - Every browser request has a METHOD; the two used with forms are GET and POST.
+    - GET -> "give me something" (read)
+        typing a URL, clicking a link, <form method="GET">
+        form data goes IN THE URL as a query string:
+            /post/search/?q=django&page=2
+        visible in the address bar, browser history, server logs; can be bookmarked/shared
+        length limited (URL), never for passwords or private data
+        should NOT change data on the server (safe to repeat / refresh)
+        use for: search boxes, filters, pagination (admin list_filter uses GET: ?published_date__gte=...)
+    - POST -> "here is data, do something with it" (create / change)
+        <form method="POST">
+        form data goes in the REQUEST BODY, not in the URL
+        not bookmarked; refresh -> browser asks "resend form data?"
+        use for: login, sign up, create/edit/delete a post, comments
+        Django needs {% csrf_token %} in every POST form (else 403 Forbidden)
+    - <form> without method -> GET by default.
+    - In a Django view:
+        request.method      -> "GET" or "POST"
+        request.GET         -> dict-like of URL query values:   request.GET.get('q')
+        request.POST        -> dict-like of form body values:    request.POST.get('post_title')
+    - Usual pattern for a form view (one URL, two methods):
+        def create_post(request):
+            if request.method == "POST":       # form was submitted
+                ... read request.POST, validate, save ...
+                return redirect(...)           # redirect after POST -> refresh won't resubmit
+            else:                              # GET: first visit
+                ... show empty form ...
+            return render(request, 'posts/create.html', {...})
+    - Summary:
+        +----------------+------------------------------+------------------------------+
+        |                | GET                          | POST                         |
+        +----------------+------------------------------+------------------------------+
+        | purpose        | read / fetch                 | create / change data         |
+        | data           | in URL ?key=value            | in request body              |
+        | visible        | yes (address bar, history)   | no (not in URL)              |
+        | bookmark       | yes                          | no                           |
+        | refresh        | safe                         | "resend form data?"          |
+        | csrf_token     | not needed                   | required in Django           |
+        | in the view    | request.GET                  | request.POST                 |
+        +----------------+------------------------------+------------------------------+
+    - POST is NOT encryption: data is still readable in transit without HTTPS.
