@@ -832,3 +832,53 @@ Seeing the SQL Django runs (connection.queries)
     - <Post: Post object (2)> -> default text for an object = "Post object (id)".
       (can be made readable later with a __str__ method in the model.)
     - connection.queries only records queries when DEBUG = True.
+
+all() and QuerySet (reading rows)
+    - What I ran in python manage.py shell:
+        >>> Post.objects.all()
+        <QuerySet [<Post: Post object (1)>, <Post: Post object (2)>, <Post: Post object (3)>]>
+        >>> data = Post.objects.all()
+        >>> data[0]
+        <Post: Post object (1)>
+        >>> data[0].post_title
+        'title 1'
+        >>> data[0].id
+        1
+      (I also typed date = Post.objects.all() by mistake -> just another variable, not used.)
+    - Parts of the call (course slide):
+
+            Post  .  objects  .  all()
+             |          |          |
+             v          v          v
+           Model   Model Manager  Query Method
+
+    - Flow (course slide):
+
+        +-------------------+     +-----+     +-------+
+        | Post.objects.all()| --> | ORM | --> |  SQL  |   SELECT ... FROM "posts_post"
+        +-------------------+     +-----+     +-------+
+                                                  |
+                                                  v
+        +-------------------+     +-----+     +-------+
+        |     QuerySet      | <-- | ORM | <-- |  DB   |   rows come back
+        +-------------------+     +-----+     +-------+
+
+      ORM works both ways: Python -> SQL going in, rows -> Python objects coming out.
+    - QuerySet = list-like collection of model objects; each table row -> one object
+      (course slide):
+
+        +-----------+          +----+------------+--------------+----------------+
+        | QuerySet  |          | id | post_title | post_content | published_date |
+        +-----------+          +----+------------+--------------+----------------+
+        |  Object   |  <-----  | 1  | title 1    | content 1    | 2026-10-22     |
+        |  Object   |  <-----  | 2  | title 2    | content 2    | 2026-10-22     |
+        |  Object   |  <-----  | 3  | title 3    | content 3    | 2026-10-22     |
+        +-----------+          +----+------------+--------------+----------------+
+
+    - Using a QuerySet:
+        data[0]             -> first object (index starts at 0, like a list)
+        data[0].post_title  -> a column value = attribute of the object
+        data[0].id          -> id added automatically by Django
+        for post in data: ... -> loop over it (same as a list in a template {% for %})
+    - all() returns ALL rows; the SQL runs only when the data is actually used
+      (printing, indexing, looping) -> QuerySets are "lazy".
