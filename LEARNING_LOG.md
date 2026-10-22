@@ -735,3 +735,25 @@ Migrations (makemigrations and migrate)
         -> makemigrations -> migrate   (new file 0002_..., 0003_...)
     - Migration files belong in the repo (they are the history of the database structure);
       never edit or delete applied ones by hand.
+
+Changing a model (second migration)
+    - blog/posts/models.py:
+        published_date = models.DateTimeField(auto_now=True)   (before)
+        published_date = models.DateField(auto_now=True)       (after)
+        DateTimeField -> date + time (2026-10-22 12:39)
+        DateField     -> date only   (2026-10-22)
+    - Commands I ran:
+        python manage.py makemigrations   -> new file 0002_alter_post_published_date.py
+        python manage.py showmigrations   -> [X] 0001_initial, [ ] 0002_... (not applied yet)
+        python manage.py migrate          -> applies 0002
+        python manage.py showmigrations   -> [X] 0001_initial, [X] 0002_alter_post_published_date
+    - Inside 0002_alter_post_published_date.py:
+        dependencies = [('posts', '0001_initial')]  -> runs only after 0001 (migrations form a chain)
+        AlterField(model_name='post', name='published_date', field=models.DateField(auto_now=True))
+        file name is generated from the change: alter + model + field
+    - sqlmigrate posts 0002 -> SQLite cannot change a column type directly, so Django:
+        1. CREATE TABLE "new__posts_post" (... "published_date" date ...)
+        2. INSERT INTO new__posts_post SELECT ... FROM posts_post   (copies existing rows)
+        3. DROP TABLE "posts_post"
+        4. ALTER TABLE "new__posts_post" RENAME TO "posts_post"
+    - Each model change = one new numbered migration file; old ones stay untouched.
