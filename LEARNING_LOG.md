@@ -1272,3 +1272,54 @@ get_object_or_404 (shortcut)
       /post/99/ -> Http404.
     - from django.http import Http404 is not used in views.py anymore (can be removed).
     - Similar: get_list_or_404(Post, ...) -> filter(); raises 404 if the list is empty.
+
+Aggregate functions (Count, Sum, Avg, Max, Min)
+    - Aggregate = one value calculated from MANY rows (count, total, average, biggest, smallest).
+      Returns a DICTIONARY, not a QuerySet.
+    - from django.db.models import Count, Sum, Avg, Max, Min
+    - (examples run on my 3 posts, ids 1, 2, 3)
+        >>> Post.objects.aggregate(Count('id'))
+        {'id__count': 3}
+            SQL: SELECT COUNT("posts_post"."id") AS "id__count" FROM "posts_post"
+        >>> Post.objects.aggregate(Sum('id'))
+        {'id__sum': 6}                                  -> 1 + 2 + 3
+        >>> Post.objects.aggregate(Avg('id'))
+        {'id__avg': 2.0}                                -> 6 / 3
+        >>> Post.objects.aggregate(Max('id'), Min('id'))
+        {'id__max': 3, 'id__min': 1}                    -> several in one query
+        >>> Post.objects.aggregate(Max('post_title'))
+        {'post_title__max': 'title 3'}                  -> Max/Min work on text and dates too
+    - Key name:
+        default -> fieldname__function   ('id__count', 'id__sum', ...)
+        own name -> keyword argument:
+            >>> Post.objects.aggregate(total=Count('id'), latest=Max('published_date'))
+            {'total': 3, 'latest': datetime.date(2026, 10, 22)}
+                SQL: SELECT COUNT(...) AS "total", MAX(...) AS "latest" FROM "posts_post"
+        get just the number:
+            >>> Post.objects.aggregate(Count('id'))['id__count']
+            3
+    - With filter (filter first, then aggregate):
+        >>> Post.objects.filter(id__gt=1).aggregate(Avg('id'))
+        {'id__avg': 2.5}                                -> only ids 2 and 3
+            SQL: ... WHERE "posts_post"."id" > 1
+        >>> Post.objects.filter(id=99).aggregate(Max('id'))
+        {'id__max': None}                               -> no rows -> None, no error
+    - aggregate() is the LAST step -> result is a dict:
+        Post.objects.aggregate(Count('id')).filter(id=1)
+            -> AttributeError: 'dict' object has no attribute 'filter'
+    - aggregate() runs the SQL immediately (not lazy, like count()).
+    - count() vs aggregate(Count()):
+        Post.objects.count()               -> 3 (just the number)
+        Post.objects.aggregate(Count('id')) -> {'id__count': 3} (dict, can add more functions)
+
+Helpful resources (Django docs: models, fields, querysets, migrations)
+    - Models (how to define models, fields, Meta, methods):
+        https://docs.djangoproject.com/en/6.0/topics/db/models/
+    - Model field reference (CharField, TextField, DateField, options like max_length,
+      auto_now, null, blank...):
+        https://docs.djangoproject.com/en/6.0/ref/models/fields/
+    - QuerySet API reference (all, get, filter, exclude, order_by, update, delete,
+      aggregate, field lookups...):
+        https://docs.djangoproject.com/en/6.0/ref/models/querysets/
+    - Migrations (makemigrations, migrate, showmigrations, sqlmigrate):
+        https://docs.djangoproject.com/en/6.0/topics/migrations/
