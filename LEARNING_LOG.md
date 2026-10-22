@@ -1683,3 +1683,39 @@
     - Model field vs form field:
         models.CharField -> database column      forms.CharField -> HTML input + validation
         models.TextField -> forms.CharField(widget=forms.Textarea)  (no forms.TextField)
+
+## Form field options: required, label, label_suffix, help_text, error_messages
+
+    - (all examples checked by rendering a test form)
+        class DemoForm(forms.Form):
+            post_title = forms.CharField(max_length=10)
+            post_content = forms.CharField(label="Your text", required=False)
+            author_name = forms.CharField(label_suffix=" ->")
+            email = forms.EmailField(help_text="We never share your email.")
+            age = forms.IntegerField(
+                min_value=18,
+                error_messages={'required': 'Please enter your age.',
+                                'min_value': 'You must be at least 18.',
+                                'invalid': 'Age must be a number.'})
+    - required (default True)
+        True  -> HTML gets required + empty submit -> "This field is required."
+        False -> field may be empty (post_content had no error on empty submit)
+    - label -> text of the <label>
+        default: from the variable name -> "_" becomes space, first letter capital
+            post_title  -> <label for="id_post_title">Post title:</label>
+            author_name -> Author name
+            email       -> Email
+        own text: label="Your text" -> <label for="id_post_content">Your text:</label>
+    - label_suffix -> text after the label, default ":"
+        per field: label_suffix=" ->"  -> <label ...>Author name -&gt;</label>   (-&gt; = ">")
+        whole form: DemoForm(label_suffix="") -> <label ...>Post title</label>  (no colon)
+    - help_text -> small hint shown under the field
+        email -> <span class="helptext" id="id_email_helptext">We never share your email.</span>
+                 input gets aria-describedby="id_email_helptext" (screen readers read it)
+    - error_messages -> replace Django's default messages, dict {error code: text}
+        empty submit:   age -> "Please enter your age."      (default: This field is required.)
+        age = "10":     age -> "You must be at least 18."    (min_value)
+        age = "abc":    age -> "Age must be a number."       (invalid)
+        fields without error_messages keep the default text:
+            post_title "x"*12 -> Ensure this value has at most 10 characters (it has 12).
+        common codes: required, invalid, max_length, min_length, max_value, min_value
