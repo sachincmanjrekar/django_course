@@ -969,3 +969,39 @@ More QuerySet methods (order_by, reverse, values, count, contains, first, last)
                                     'reverese'. Did you mean: 'reverse'?
       -> error message says WHICH object: 'Post' (model), 'Manager' (objects),
          'QuerySet' (result of all/filter/order_by).
+
+AND / OR operators (combining conditions)
+    - (examples run on my 3 posts: title 1, title 2, title 3)
+    - AND -> row must match ALL conditions
+        1. commas inside filter():
+            >>> Post.objects.filter(id=1, post_title="title 1")
+            <QuerySet [<Post: Post object (1)>]>
+            >>> Post.objects.filter(id=1, post_title="title 2")
+            <QuerySet []>                 -> both must be true, none match
+        2. & between two QuerySets:
+            >>> Post.objects.filter(id=1) & Post.objects.filter(post_title="title 1")
+            <QuerySet [<Post: Post object (1)>]>
+        3. chaining: Post.objects.filter(id=1).filter(post_title="title 1")
+    - OR -> row must match AT LEAST ONE condition
+        | between two QuerySets:
+            >>> Post.objects.filter(id=1) | Post.objects.filter(id=3)
+            <QuerySet [<Post: Post object (1)>, <Post: Post object (3)>]>
+    - Q objects -> conditions inside ONE filter():
+        from django.db.models import Q
+        >>> Post.objects.filter(Q(id=1) | Q(post_title="title 3"))         -> OR
+        <QuerySet [<Post: Post object (1)>, <Post: Post object (3)>]>
+        >>> Post.objects.filter(Q(id__gt=1) & Q(post_content="content 2"))  -> AND
+        <QuerySet [<Post: Post object (2)>]>
+        >>> Post.objects.filter(~Q(id=2))                                   -> NOT
+        <QuerySet [<Post: Post object (1)>, <Post: Post object (3)>]>
+    - SQL behind Q(id=1) | Q(post_title="title 3"):
+        ... FROM "posts_post" WHERE ("posts_post"."id" = 1 OR "posts_post"."post_title" = 'title 3')
+    - Summary:
+        +----------+---------------------------------------+---------+
+        | operator | Django                                | SQL     |
+        +----------+---------------------------------------+---------+
+        | AND      | filter(a=1, b=2)  /  &  /  Q() & Q()  | AND     |
+        | OR       | qs1 | qs2  /  Q() | Q()               | OR      |
+        | NOT      | ~Q()  /  exclude()                    | NOT     |
+        +----------+---------------------------------------+---------+
+    - Q is needed for OR inside one filter(); commas can only do AND.
