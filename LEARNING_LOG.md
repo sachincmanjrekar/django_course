@@ -692,3 +692,46 @@ Models (first model: Post)
         python manage.py makemigrations -> writes posts/migrations/0001_initial.py (Create model Post)
         python manage.py migrate        -> creates the table in db.sqlite3
       makemigrations --dry-run -> shows what would be created without writing files.
+
+Migrations (makemigrations and migrate)
+    - Workflow (from the course slide):
+
+        +------------------+     +------------------+     +--------------------+
+        | Add/Change model | --> |  makemigrations  | --> | Generates          |
+        |  (models.py)     |     |                  |     | migration file     |
+        +------------------+     +------------------+     +--------------------+
+                                                                    |
+                                                                    v
+        +------------------+     +------------------+     +--------------------+
+        |        DB        | <-- |   Executes SQL   | <-- |      migrate       |
+        |   (db.sqlite3)   |     |                  |     |                    |
+        +------------------+     +------------------+     +--------------------+
+    - python manage.py makemigrations
+        -> reads models.py, compares with existing migrations, writes the changes as a file:
+           blog/posts/migrations/0001_initial.py   (CreateModel Post)
+        -> nothing in the database changes yet; it is only a plan (Python file).
+    - python manage.py migrate
+        -> runs the migration files that are not applied yet -> creates the table in db.sqlite3
+           (table name: posts_post = appname_modelname)
+    - python manage.py sqlmigrate posts 0001
+        -> shows the SQL a migration will run (read-only, changes nothing):
+           CREATE TABLE "posts_post" (
+               "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+               "post_title" varchar(60) NOT NULL,
+               "post_content" text NOT NULL,
+               "published_date" datetime NOT NULL);
+        -> CharField -> varchar(60), TextField -> text, DateTimeField -> datetime
+    - Order I ran: makemigrations -> sqlmigrate posts 0001 -> migrate
+    - Inside 0001_initial.py:
+        initial = True             -> first migration of the app
+        dependencies = []          -> does not depend on other migrations
+        CreateModel(name='Post', fields=[...])
+            id -> BigAutoField(primary_key=True)  added automatically by Django
+            post_title, post_content, published_date -> same as models.py
+    - python manage.py showmigrations posts
+        [X] 0001_initial  -> applied (table exists)
+        [ ] 0001_initial  -> not applied yet (run migrate)
+    - Rule: every time models.py changes (new field, rename, delete)
+        -> makemigrations -> migrate   (new file 0002_..., 0003_...)
+    - Migration files belong in the repo (they are the history of the database structure);
+      never edit or delete applied ones by hand.
