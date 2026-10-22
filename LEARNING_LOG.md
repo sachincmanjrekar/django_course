@@ -1070,3 +1070,34 @@ Field lookups (field__lookup=value)
                Post.objects.filter(Q(id__lt=2) | Q(post_content__endswith="3")) -> OR
     - Wrong lookup name -> error, e.g. filter(id__bigger=1) ->
         FieldError: Unsupported lookup 'bigger' for BigAutoField or join on the field not permitted.
+
+QuerySets are lazy (proved with connection.queries)
+    - Lazy = building a QuerySet does NOT touch the database; SQL runs only when the
+      data is actually needed (evaluated).
+    - Test (DEBUG = True, counting queries with connection.queries):
+        >>> from django.db import connection, reset_queries
+        >>> reset_queries()                                 -> start count at 0
+        >>> data = Post.objects.all()                       -> queries: 0
+        >>> f = data.filter(id__gt=1).order_by('-id')       -> queries: 0  (still nothing!)
+        >>> list(f)                                         -> queries: 1  (SQL runs NOW)
+        [<Post: Post object (3)>, <Post: Post object (2)>]
+            SQL: ... FROM "posts_post" WHERE "posts_post"."id" > 1
+                 ORDER BY "posts_post"."id" DESC
+            -> all + filter + order_by became ONE query
+        >>> list(f)                                         -> queries: 1  (cached, no new SQL)
+        >>> data[0]; data[0]                                -> queries: 3  (+2, not cached)
+        >>> data.count()                                    -> queries: 4  (+1, SELECT COUNT)
+        >>> for p in data: pass                             -> queries: 5  (+1, loads all rows)
+        >>> for p in data: pass                             -> queries: 5  (cached)
+    - What evaluates a QuerySet (runs SQL):
+        list(qs), for loop, printing/repr in shell, len(qs), bool / if qs:,
+        qs[0] (single index), count(), first(), last(), get(), exists()
+    - What does NOT run SQL:
+        all(), filter(), exclude(), order_by(), slicing qs[:2]  -> they just build the query
+    - Cache:
+        once a QuerySet is fully evaluated (list, for loop), results are stored in it
+        -> using the SAME QuerySet again = no new query.
+        qs[0] / count() on a not-yet-evaluated QuerySet -> new query every time.
+    - Why it matters:
+        can build a query step by step (filter, then order, then slice) -> one SQL at the end.
+        in templates, {% for post in posts %} is where the query actually runs.
