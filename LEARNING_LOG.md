@@ -806,3 +806,29 @@ Django shell: creating objects (save and create)
         id 1 | title 1 | content 1 | 2026-10-22
         id 2 | title 2 | content 2 | 2026-10-22
     - exit() -> leave the shell.
+
+Seeing the SQL Django runs (connection.queries)
+    - What I ran in python manage.py shell:
+        >>> from posts.models import Post
+        >>> Post
+        <class 'posts.models.Post'>
+        >>> post1 = Post(post_title="title 1", post_content="content 1")
+        >>> post1.save()
+        >>> Post.objects.create(post_title="title 2",post_content="content 2")
+        <Post: Post object (2)>
+        >>> Post.objects.create(post_title="title 3",post_content="content 3")
+        <Post: Post object (3)>
+        >>> from django.db import connection
+        >>> connection.queries
+    - connection.queries -> list of every SQL query run in this shell session, with time:
+        INSERT INTO "posts_post" ("post_title", "post_content", "published_date")
+            VALUES ('title 1', 'content 1', '2026-10-22') RETURNING "posts_post"."id"
+        (same INSERT for title 2 and title 3, each 'time': '0.003' seconds)
+    - What it shows:
+        save() and objects.create() -> both run the SAME INSERT (create = build + save).
+        id is not in the INSERT -> the database gives it (AUTOINCREMENT),
+            RETURNING "id" -> Django puts it back into the object (post1.id = 1).
+        published_date '2026-10-22' -> filled by auto_now=True, date only (DateField).
+    - <Post: Post object (2)> -> default text for an object = "Post object (id)".
+      (can be made readable later with a __str__ method in the model.)
+    - connection.queries only records queries when DEBUG = True.
