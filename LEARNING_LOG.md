@@ -1448,3 +1448,31 @@
     - Every admin action is saved in the django_admin_log table
       -> "Recent actions" box on the admin home page, and "HISTORY" button on each post.
     - Deleted id 4 is not reused -> next new post gets id 5 (AUTOINCREMENT).
+
+## Customising the admin list (ModelAdmin, list_display)
+
+    - blog/posts/admin.py:
+        from django.contrib import admin
+        from .models import Post
+
+        @admin.register(Post)
+        class PostAdmin(admin.ModelAdmin):
+            list_display = ('id', 'post_title', 'published_date')
+            list_display_links = ('id', 'post_title')
+
+        # admin.site.register(Post, PostAdmin)
+    - ModelAdmin = class with settings for how ONE model looks/behaves in the admin.
+      Name convention: ModelName + Admin -> PostAdmin.
+    - Two ways to register (do only ONE, both together -> AlreadyRegistered error):
+        @admin.register(Post)                     -> decorator above the class
+        admin.site.register(Post, PostAdmin)      -> function call after the class
+      (before: admin.site.register(Post) -> default admin, no customising)
+    - list_display -> columns in the list page (instead of only the __str__ text):
+        ID | POST TITLE | PUBLISHED DATE
+        column headers come from the field names (post_title -> "Post title").
+    - list_display_links -> which columns are clickable links to the edit page
+        default: only the first column; here id AND post_title.
+    - It is a tuple ( ... ) -> one item needs a comma: ('post_title',)
+    - python manage.py check -> "System check identified no issues" (checks admin settings too,
+      e.g. a wrong field name in list_display gives an error here).
+    - More options for later: search_fields, list_filter, ordering, list_per_page.
