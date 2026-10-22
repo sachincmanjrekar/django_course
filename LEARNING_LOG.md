@@ -1032,3 +1032,41 @@ Slicing a QuerySet (LIMIT / OFFSET)
                    -> TypeError: Cannot filter a query once a slice has been taken.
                       -> filter / order_by FIRST, slice LAST
     - Uses: "latest 3 posts" on the home page, pagination (page 2 = [10:20]).
+
+Field lookups (field__lookup=value)
+    - Syntax: Post.objects.filter(fieldname__lookup=value)   -> DOUBLE underscore
+      works in filter(), exclude(), get().
+      filter(id=1) is short for filter(id__exact=1).
+    - (examples run on my 3 posts: title 1/content 1, title 2/content 2, title 3/content 3)
+        +-------------------------------------+------------+--------------------------------+
+        | lookup                              | result ids | SQL (WHERE ...)                |
+        +-------------------------------------+------------+--------------------------------+
+        | text                                |            |                                |
+        | post_title__exact="title 1"         | [1]        | post_title = 'title 1'         |
+        | post_title__iexact="TITLE 1"        | [1]        | LIKE 'TITLE 1'  (ignore case)  |
+        | post_title__contains="2"            | [2]        | LIKE '%2%'                     |
+        | post_title__icontains="TITLE"       | [1, 2, 3]  | LIKE '%TITLE%'  (ignore case)  |
+        | post_title__startswith="title"      | [1, 2, 3]  | LIKE 'title%'                  |
+        | post_content__endswith="3"          | [3]        | LIKE '%3'                      |
+        | numbers                             |            |                                |
+        | id__gt=1                            | [2, 3]     | id > 1                         |
+        | id__gte=2                           | [2, 3]     | id >= 2                        |
+        | id__lt=3                            | [1, 2]     | id < 3                         |
+        | id__lte=1                           | [1]        | id <= 1                        |
+        | id__in=[1, 3]                       | [1, 3]     | id IN (1, 3)                   |
+        | id__range=(2, 3)                    | [2, 3]     | id BETWEEN 2 AND 3  (both incl)|
+        | dates                               |            |                                |
+        | published_date__year=2026           | [1, 2, 3]  | BETWEEN 2026-01-01 AND 12-31   |
+        | published_date__month=10            | [1, 2, 3]  | month of date = 10             |
+        | published_date__day=22              | [1, 2, 3]  | day of date = 22               |
+        | empty values                        |            |                                |
+        | post_title__isnull=False            | [1, 2, 3]  | post_title IS NOT NULL         |
+        +-------------------------------------+------------+--------------------------------+
+    - "i" in front (iexact, icontains, istartswith, iendswith) -> ignore upper/lower case.
+      Note: on SQLite, LIKE already ignores case for English letters, so contains and
+      icontains behave the same here; on PostgreSQL contains IS case-sensitive.
+    - % in LIKE = "any characters": '%2%' anywhere, 'title%' at start, '%3' at end.
+    - Combine: Post.objects.filter(id__gte=2, post_title__icontains="title")  -> AND
+               Post.objects.filter(Q(id__lt=2) | Q(post_content__endswith="3")) -> OR
+    - Wrong lookup name -> error, e.g. filter(id__bigger=1) ->
+        FieldError: Unsupported lookup 'bigger' for BigAutoField or join on the field not permitted.
