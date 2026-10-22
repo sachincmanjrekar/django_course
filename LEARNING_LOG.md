@@ -922,3 +922,50 @@ get(), filter(), exclude() (reading specific rows)
         | exclude() | QuerySet (no match)| empty QuerySet, no error         |
         +-----------+--------------------+----------------------------------+
     - Can chain: Post.objects.filter(id__gt=1).exclude(post_title="title 3")
+
+More QuerySet methods (order_by, reverse, values, count, contains, first, last)
+    - What I ran in python manage.py shell (data = Post.objects.all()):
+        >>> s1 = Post.objects.get(id=2)
+        >>> s1.id
+        2
+        >>> s1.post_title
+        'title 2'
+        >>> data.order_by('id')
+        <QuerySet [<Post: Post object (1)>, <Post: Post object (2)>, <Post: Post object (3)>]>
+        >>> data.order_by('-id')
+        <QuerySet [<Post: Post object (3)>, <Post: Post object (2)>, <Post: Post object (1)>]>
+        >>> data.order_by('-id').reverse()
+        <QuerySet [<Post: Post object (1)>, <Post: Post object (2)>, <Post: Post object (3)>]>
+        >>> data.values()
+        <QuerySet [{'id': 1, 'post_title': 'title 1', 'post_content': 'content 1',
+                    'published_date': datetime.date(2026, 10, 22)}, {...id 2...}, {...id 3...}]>
+        >>> Post.objects.all().count()
+        3
+        >>> data.contains(s1)
+        True
+        >>> data.first()
+        <Post: Post object (1)>
+        >>> data.last()
+        <Post: Post object (3)>
+    - Methods:
+        order_by('field')  -> sort ascending (1, 2, 3)          SQL: ORDER BY id ASC
+        order_by('-field') -> minus = descending (3, 2, 1)      SQL: ORDER BY id DESC
+        reverse()          -> flips the current order ('-id' reversed -> 1, 2, 3)
+        values()           -> QuerySet of DICTIONARIES instead of objects
+                              (column name -> value), handy to see all data at once
+                              values('post_title') -> only that column
+        count()            -> number of rows (SQL COUNT, faster than len())
+        contains(obj)      -> True/False, is this object in the QuerySet?
+        first() / last()   -> first / last object (None if empty, no error)
+    - get() vs first():
+        get(id=2)  -> must match exactly one, otherwise error
+        first()    -> just the first one, None if the QuerySet is empty
+    - Errors I made (typos) -> Python suggests the right name:
+        Post.objetcts            -> AttributeError: type object 'Post' has no attribute
+                                    'objetcts'. Did you mean: 'objects'?
+        Post.objects.getA(id=2)  -> AttributeError: 'Manager' object has no attribute
+                                    'getA'. Did you mean: 'get'?
+        .reverese()              -> AttributeError: 'QuerySet' object has no attribute
+                                    'reverese'. Did you mean: 'reverse'?
+      -> error message says WHICH object: 'Post' (model), 'Manager' (objects),
+         'QuerySet' (result of all/filter/order_by).
