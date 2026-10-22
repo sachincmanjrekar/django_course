@@ -1634,3 +1634,52 @@
     - Only POST (and PUT/PATCH/DELETE) are checked; GET is not -> another reason
       GET must never change data.
     - Admin forms already include it; my own POST forms (comment form in post.html) need it.
+
+## Form fields (django.forms)
+
+    - A form is a Python class (usually in posts/forms.py), like a model but for HTML input:
+        from django import forms
+
+        class PostForm(forms.Form):
+            post_title = forms.CharField(max_length=60)
+            post_content = forms.CharField(widget=forms.Textarea)
+            email = forms.EmailField(required=False)
+            views = forms.IntegerField(min_value=0)
+            published = forms.BooleanField(required=False)
+            published_date = forms.DateField()
+            category = forms.ChoiceField(choices=[('tech', 'Technology'), ('food', 'Food')])
+    - Each field -> HTML input (checked by rendering this form):
+        CharField(max_length=60)    -> <input type="text" name="post_title" maxlength="60" required id="id_post_title">
+        CharField(widget=Textarea)  -> <textarea name="post_content" cols="40" rows="10" required ...>
+        EmailField(required=False)  -> <input type="email" name="email" maxlength="320" ...>   (no required)
+        IntegerField(min_value=0)   -> <input type="number" name="views" min="0" required ...>
+        BooleanField(required=False)-> <input type="checkbox" name="published" ...>
+        DateField()                 -> <input type="text" name="published_date" required ...>
+        ChoiceField(choices=[...])  -> <select name="category"><option value="tech">Technology</option>...
+      name  = field name (key in request.POST)
+      id    = "id_" + field name (label for="id_..." points to it)
+      choices: (value saved, text shown)
+    - Common options:
+        required=True (default) -> adds required; False -> field may be empty
+        max_length / min_length, min_value / max_value
+        label="Title"          -> own label text (default: from field name, "Post title")
+        initial="..."          -> pre-filled value
+        help_text="..."        -> small hint under the field
+        widget=forms.Textarea / forms.PasswordInput / forms.DateInput(attrs={'type': 'date'})
+            widget = HOW the field looks in HTML; field = WHAT data it accepts
+    - Validation -> form = PostForm(request.POST); form.is_valid()
+        valid data -> True, form.cleaned_data = values converted to Python types:
+            {'post_title': 'Hi', 'post_content': 'Body', 'email': '', 'views': 5,
+             'published': False, 'published_date': datetime.date(2026, 10, 23), 'category': 'tech'}
+            ('5' string -> 5 int, '2026-10-23' -> date, unticked checkbox -> False)
+        bad data -> False, form.errors:
+            post_title     -> Ensure this value has at most 60 characters (it has 70).
+            post_content   -> This field is required.
+            email          -> Enter a valid email address.
+            views          -> Ensure this value is greater than or equal to 0.
+            published_date -> Enter a valid date.
+            category       -> Select a valid choice. zzz is not one of the available choices.
+        {{ form }} shows these errors next to the fields automatically.
+    - Model field vs form field:
+        models.CharField -> database column      forms.CharField -> HTML input + validation
+        models.TextField -> forms.CharField(widget=forms.Textarea)  (no forms.TextField)
