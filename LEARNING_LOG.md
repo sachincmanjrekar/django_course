@@ -882,3 +882,43 @@ all() and QuerySet (reading rows)
         for post in data: ... -> loop over it (same as a list in a template {% for %})
     - all() returns ALL rows; the SQL runs only when the data is actually used
       (printing, indexing, looping) -> QuerySets are "lazy".
+
+get(), filter(), exclude() (reading specific rows)
+    - (examples run on my 3 posts: title 1, title 2, title 3)
+    - get() -> exactly ONE object (not a QuerySet)
+        >>> Post.objects.get(id=1)
+        <Post: Post object (1)>
+        errors:
+            Post.objects.get(id=50)    -> DoesNotExist: Post matching query does not exist.
+            Post.objects.get(id__gt=1) -> MultipleObjectsReturned: get() returned more than
+                                          one Post -- it returned 2!
+        -> use get() only when exactly one row must match (usually id).
+    - filter() -> QuerySet of ALL rows that match (0, 1 or many)
+        >>> Post.objects.filter(post_title="title 2")
+        <QuerySet [<Post: Post object (2)>]>
+        >>> Post.objects.filter(id__gt=1)
+        <QuerySet [<Post: Post object (2)>, <Post: Post object (3)>]>
+        >>> Post.objects.filter(post_title="nope")
+        <QuerySet []>            -> no match = empty QuerySet, NO error
+    - exclude() -> QuerySet of all rows that do NOT match (opposite of filter)
+        >>> Post.objects.exclude(id=1)
+        <QuerySet [<Post: Post object (2)>, <Post: Post object (3)>]>
+    - SQL behind it -> print(Post.objects.filter(id=1).query):
+        SELECT "posts_post"."id", "posts_post"."post_title", ... FROM "posts_post"
+        WHERE "posts_post"."id" = 1
+        (filter/get = WHERE ... , exclude = WHERE NOT ...)
+    - Field lookups (field__lookup=value), double underscore:
+        id__gt=1                  -> id > 1        (gte, lt, lte also)
+        post_title__contains="1"  -> LIKE '%1%'    (icontains = ignore case)
+        post_title__startswith="t"
+        id__in=[1, 3]             -> id IN (1, 3)
+    - Summary:
+        +-----------+--------------------+----------------------------------+
+        | method    | returns            | no match / many matches          |
+        +-----------+--------------------+----------------------------------+
+        | all()     | QuerySet (all)     | empty QuerySet                   |
+        | get()     | ONE object         | DoesNotExist / MultipleObjects.. |
+        | filter()  | QuerySet (match)   | empty QuerySet, no error         |
+        | exclude() | QuerySet (no match)| empty QuerySet, no error         |
+        +-----------+--------------------+----------------------------------+
+    - Can chain: Post.objects.filter(id__gt=1).exclude(post_title="title 3")
