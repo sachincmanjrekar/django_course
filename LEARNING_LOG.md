@@ -1426,3 +1426,25 @@
                 class Meta:
                     verbose_name_plural = "Categories"
         Convention: model class name is SINGULAR (Post, not Posts) -> one object = one post.
+
+## Admin panel: add, update, delete a post
+
+    - All done from http://127.0.0.1:8000/admin/posts/post/ (no code, no shell).
+    - What I did (from the admin history, LogEntry table):
+        Addition -> "title 4"                      -> Added.
+        Change   -> "title 4 - using admin panel"  -> Changed Post title.
+        Deletion -> "title 4 - using admin panel"
+      Posts in the database afterwards: title 1, title 2, title 3 (id 4 is gone).
+    - Add    -> "ADD POST +" button -> form with Post title + Post content -> SAVE
+                published_date not in the form (auto_now=True -> not editable, filled automatically)
+                = Post.objects.create(...)   -> SQL INSERT
+    - Update -> click a post in the list -> change fields -> SAVE
+                = obj.post_title = "..."; obj.save()  -> SQL UPDATE
+    - Delete -> open post -> DELETE button -> "Are you sure?" page -> "Yes, I'm sure"
+                or tick posts in the list -> Action: "Delete selected posts" -> Run
+                = obj.delete() / qs.delete()  -> SQL DELETE
+    - Form labels come from field names: post_title -> "Post title", post_content -> "Post content".
+      CharField -> one-line input, TextField -> big text box.
+    - Every admin action is saved in the django_admin_log table
+      -> "Recent actions" box on the admin home page, and "HISTORY" button on each post.
+    - Deleted id 4 is not reused -> next new post gets id 5 (AUTOINCREMENT).
