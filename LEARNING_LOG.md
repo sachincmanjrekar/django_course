@@ -670,3 +670,25 @@ STATICFILES_DIRS emptied (no global static folder)
     - App static files (posts/static/posts/...) still work without it -> found via APP_DIRS-like
       app lookup (AppDirectoriesFinder). STATICFILES_DIRS is only for extra, project-level folders.
     - Add it back when a global static/ folder is created again.
+
+Models (first model: Post)
+    - Model = Python class that describes a database table; each attribute = a column.
+      Django creates the table from it (no SQL needed).
+    - blog/posts/models.py:
+        from django.db import models
+
+        class Post(models.Model):
+            post_title = models.CharField(max_length=60)
+            post_content = models.TextField()
+            published_date = models.DateTimeField(auto_now=True)
+    - Fields:
+        CharField(max_length=60) -> short text, max_length is required
+        TextField()              -> long text, no limit (post body)
+        DateTimeField(...)       -> date + time
+            auto_now=True     -> updated to "now" on EVERY save (= last modified)
+            auto_now_add=True -> set once when the row is created (= published / created date)
+    - Django adds an id column automatically (primary key) -> post.id
+    - The model is not in the database yet -> needs migrations:
+        python manage.py makemigrations -> writes posts/migrations/0001_initial.py (Create model Post)
+        python manage.py migrate        -> creates the table in db.sqlite3
+      makemigrations --dry-run -> shows what would be created without writing files.
