@@ -1581,3 +1581,56 @@
         | in the view    | request.GET                  | request.POST                 |
         +----------------+------------------------------+------------------------------+
     - POST is NOT encryption: data is still readable in transit without HTTPS.
+
+## CSRF attack and {% csrf_token %}
+
+    - CSRF = Cross-Site Request Forgery: another website makes YOUR browser send a request
+      to a site where you are logged in, without you knowing.
+    - Attack WITHOUT token (course slide):
+
+        +------+      logged in       +-------------+
+        | user | -------------------> | FRIENDS.COM |   (has a delete-account form)
+        +------+                      +-------------+
+           |
+           | visits
+           v
+        +----------+   hidden form    +----------------------------------------+
+        | EVIL.COM | ---------------> | POST https://friends.com/delete-account |
+        +----------+  (auto-submits)  +----------------------------------------+
+                                                         |
+                                                         v
+                                              +---------------------+
+                                              | DELETED THE ACCOUNT |
+                                              +---------------------+
+        why it works: the browser sends friends.com's login cookie automatically with
+        every request to friends.com -> the server thinks it is the real user.
+
+    - Attack WITH token (course slide):
+
+        +------+                      +----------------------------+
+        | user | -------------------> | FRIENDS.COM                |
+        +------+                      | delete form WITH TOKEN     |
+           |                          +----------------------------+
+           v
+        +----------+    NO TOKEN      +----------------------------------------+
+        | EVIL.COM | ---------------> | POST https://friends.com/delete-account |
+        +----------+                  +----------------------------------------+
+             ^                                           |
+             |                  FAILED                   |
+             +-------------------------------------------+
+        why it fails: the token is a secret random value placed inside friends.com's own
+        form; evil.com cannot read friends.com's pages, so it cannot know the token.
+
+    - In Django:
+        <form method="POST">
+            {% csrf_token %}
+            ...
+        </form>
+        {% csrf_token %} -> renders a hidden input:
+            <input type="hidden" name="csrfmiddlewaretoken" value="...random...">
+        CsrfViewMiddleware (on by default in settings.py MIDDLEWARE) checks every POST:
+            token missing / wrong -> 403 Forbidden "CSRF verification failed"
+            token correct         -> request goes to the view
+    - Only POST (and PUT/PATCH/DELETE) are checked; GET is not -> another reason
+      GET must never change data.
+    - Admin forms already include it; my own POST forms (comment form in post.html) need it.
