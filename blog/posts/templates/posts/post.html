@@ -5,9 +5,9 @@
 {% block body %}
         <div class="content d-flex flex-column">
             <img class="text-center" src="" />
-                <div class="h5 text-center text-body-secondary">25th January 2024</div>
+                <div class="h5 text-center text-body-secondary">{{ post_dict.published_date }}</div>
 
-                <h1 class="text-center fs-1 fw-bold my-3">{{ post_dict.title }}</h1>
+                <h1 class="text-center fs-1 fw-bold my-3">{{ post_dict.post_title }}</h1>
                 <div class="d-flex justify-content-center align-items-center flex-wrap ">
 
                         <a href="" class="btn btn-dark opacity-70 text-light m-2">#python</a>
@@ -20,7 +20,7 @@
                     <a href="" class="btn btn-primary opacity-70 text-light m-2">#Food</a>
                 </div>
                 <hr class="border border-dark border-1 opacity-50">
-                <p>{{ post_dict.content }}</p>
+                <p>{{ post_dict.post_content }}</p>
             </div>
             <h2>Comments</h2>
             <form method='POST'>

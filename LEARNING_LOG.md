@@ -1219,3 +1219,33 @@ Fetching from the database and rendering in a template
         links:  /post/1/, /post/2/, /post/3/
     - Note: post_detail() still uses the old post_list, so "Read More" shows the old
       hard-coded posts, not the database ones (next step: Post.objects.get(id=id)).
+
+Single post page from the database (get + Http404)
+    - blog/posts/views.py:
+        post_list (hard-coded dicts) removed -> all data now comes from the database.
+
+        def post_detail(request, id):
+            try:
+                post_dict = Post.objects.get(id=id)
+            except:
+                raise Http404()
+            return render(request, 'posts/post.html', {"post_dict": post_dict})
+        get(id=id) -> one Post object; if no row -> DoesNotExist -> caught -> raise Http404()
+        (before: for loop over post_list to find the matching dict)
+    - blog/posts/templates/posts/post.html -> model field names:
+        {{ post_dict.title }}    -> {{ post_dict.post_title }}
+        {{ post_dict.content }}  -> {{ post_dict.post_content }}
+        25th January 2024        -> {{ post_dict.published_date }}
+    - Result (checked by rendering):
+        /post/1/  -> title 1, content 1, Oct. 22, 2026   (same for 2 and 3)
+        /post/99/ -> Http404 -> custom 404.html (when DEBUG = False)
+    - Name: post_dict is now a Post OBJECT, not a dict (works, but post would be clearer).
+    - Notes / to improve:
+        {% block title %}{{ post_dict.title }}{% endblock %} -> browser tab is EMPTY,
+            because the model field is post_title, not title.
+            a wrong name in a template gives "" (no error) -> easy to miss.
+        bare except: catches EVERY error (even typos) and shows 404.
+            better: except Post.DoesNotExist:
+        Django shortcut doing the same in one line:
+            from django.shortcuts import get_object_or_404
+            post = get_object_or_404(Post, id=id)
