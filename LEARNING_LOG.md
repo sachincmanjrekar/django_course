@@ -1871,3 +1871,127 @@
       and its own <label>.
     - Pass the widget CLASS (forms.Textarea) or an INSTANCE with options
       (forms.Textarea(attrs={...})) -> both work.
+
+## CRUD using Django forms API
+
+    Idea: one form class (PostForm) is reused for Create and Update.
+    Read = the views we already have (home, post_detail). Delete needs no form fields,
+    just a POST with a confirm button.
+
+    forms.py
+    --------
+    from django import forms
+
+    class PostForm(forms.Form):
+        post_title = forms.CharField(max_length=60)
+        post_content = forms.CharField(widget=forms.Textarea)
+
+    Pattern used by every view that changes data
+    --------------------------------------------
+        GET  -> show the form (empty, or pre-filled)
+        POST -> form = PostForm(request.POST)
+                form.is_valid() ?
+                   yes -> save to DB -> redirect   (302, stops a re-submit on refresh)
+                   no  -> render the same form again, now with errors
+
+    +---------+   GET    +-----------+   POST    +------------+  valid   +----------+
+    | browser | -------> | empty form| --------> | is_valid() | -------> | DB write |
+    +---------+          +-----------+           +------------+          +----------+
+                               ^                       | invalid              |
+                               +---- form + errors ----+               redirect (302)
+
+    CREATE
+    ------
+    def post_create(request):
+        if request.method == 'POST':
+            form = PostForm(request.POST)
+            if form.is_valid():
+                Post.objects.create(**form.cleaned_data)
+                return redirect('home')
+        else:
+            form = PostForm()
+        return render(request, 'posts/post_form.html', {'form': form})
+
+    - cleaned_data = {'post_title': ..., 'post_content': ...}; the keys match the
+      model fields, so **cleaned_data can go straight into create().
+    - Invalid POST does NOT redirect: the same form goes back with errors.
+
+    UPDATE
+    ------
+    def post_update(request, id):
+        post = get_object_or_404(Post, id=id)
+        if request.method == 'POST':
+            form = PostForm(request.POST)
+            if form.is_valid():
+                post.post_title = form.cleaned_data['post_title']
+                post.post_content = form.cleaned_data['post_content']
+                post.save()
+                return redirect('post_detail', id=post.id)
+        else:
+            form = PostForm(initial={'post_title': post.post_title,
+                                     'post_content': post.post_content})
+        return render(request, 'posts/post_form.html', {'form': form})
+
+    - initial={...} pre-fills the inputs with the current values.
+
+    DELETE
+    ------
+    def post_delete(request, id):
+        post = get_object_or_404(Post, id=id)
+        if request.method == 'POST':
+            post.delete()
+            return redirect('home')
+        return render(request, 'posts/post_confirm_delete.html', {'post': post})
+
+    - Delete only on POST. A GET link must never delete (crawlers and prefetch follow links).
+
+    Template (post_form.html), shared by create and update
+    ------------------------------------------------------
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+
+    urls.py
+    -------
+    path('create/', views.post_create, name='post_create'),
+    path('<int:id>/update/', views.post_update, name='post_update'),
+    path('<int:id>/delete/', views.post_delete, name='post_delete'),
+
+    Verified output (views called directly, then the transaction was rolled back)
+    -----------------------------------------------------------------------------
+    DB: [(1,'title 1'), (2,'title 2'), (3,'title 3')]
+    GET  create          -> 200  empty form:
+         <input type="text" name="post_title" maxlength="60" required id="id_post_title">
+    POST create (empty)  -> 200  same form + errors:
+         <ul class="errorlist" id="id_post_title_error"><li>This field is required.</li></ul>
+    POST create (valid)  -> 302 redirect -> /post/home/
+    DB: [..., (5, 'title 4', 'content 4')]
+    GET  update 5        -> 200  pre-filled:
+         <input type="text" name="post_title" value="title 4" ...>
+         <textarea ...>content 4</textarea>
+    POST update 5        -> 302 redirect -> /post/5/
+    DB: [..., (5, 'title 4 edited', 'content 4 edited')]
+    GET  delete 5        -> 200  Delete "title 4 edited"? [Yes]
+    POST delete 5        -> 302 redirect -> /post/home/
+    DB: [(1,...), (2,...), (3,...)]
+    GET  update 999      -> Http404  No Post matches the given query.
+
+    Note: the new row got id 5, not 4. SQLite does not reuse ids of deleted rows.
+
+    Shortcut: ModelForm (builds the fields from the model)
+    ------------------------------------------------------
+    class PostModelForm(forms.ModelForm):
+        class Meta:
+            model = Post
+            fields = ['post_title', 'post_content']
+
+    form = PostModelForm(request.POST)                 # create
+    form.save()                                        -> created 6 mf title
+    form = PostModelForm(request.POST, instance=post)  # update the existing row
+    form.save()                                        -> updated 6 mf edited
+    PostModelForm(instance=post)                       # pre-filled, no initial={} needed
+
+    forms.Form  : you copy cleaned_data into the model yourself
+    ModelForm   : form.save() does create/update for you
