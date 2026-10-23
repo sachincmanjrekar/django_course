@@ -1769,3 +1769,32 @@
         +------------------+------------------+-------------------------------+
         Always also: <form method="POST">, {% csrf_token %}, submit button.
     - Errors and help_text appear inside the same wrapper of their field.
+
+## Rendering a form manually (field by field) -> errors, help_text are MY job
+
+    - (checked by rendering a test form submitted with a too-long title and empty content)
+    - Only label + input:
+        {{ form.post_title.label_tag }} {{ form.post_title }}
+        -> label and input only, NO error message shown, even though the title was too long.
+    - What I have to add myself:
+        {{ form.post_title.label_tag }}   -> <label for="id_post_title">Post title:</label>
+        {{ form.post_title }}             -> the input
+        {{ form.post_title.help_text }}   -> Max 5 letters.
+        {{ form.post_title.errors }}      -> <ul class="errorlist" id="id_post_title_error">
+                                               <li>Ensure this value has at most 5 characters (it has 14).</li></ul>
+        {{ form.non_field_errors }}       -> errors not tied to one field
+    - Own error HTML (e.g. Bootstrap):
+        {% for e in form.post_title.errors %}
+            <p class="text-danger">{{ e }}</p>
+        {% endfor %}
+        -> <p class="text-danger">Ensure this value has at most 5 characters (it has 14).</p>
+    - Shortcut: loop over all fields (still manual, written once):
+        {% for field in form %}
+            {{ field.label_tag }} {{ field }} {{ field.help_text }} {{ field.errors }}
+        {% endfor %}
+        -> post_content: <ul class="errorlist" ...><li>This field is required.</li></ul>
+    - {{ form.post_title }} STILL does, even in manual mode:
+        keeps the typed value (value="too long title"), maxlength, required, id,
+        aria-invalid="true" when the field has an error.
+    - In short: {{ form }} -> everything automatic; manual -> I choose each piece,
+      and only get what I write.
