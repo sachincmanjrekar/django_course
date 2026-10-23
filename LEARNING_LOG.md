@@ -1719,3 +1719,53 @@
         fields without error_messages keep the default text:
             post_title "x"*12 -> Ensure this value has at most 10 characters (it has 12).
         common codes: required, invalid, max_length, min_length, max_value, min_value
+
+## Form output styles: as_div, as_p, as_table, as_ul
+
+    - Same form, different HTML around each field (checked by rendering, blank lines removed):
+        class PostForm(forms.Form):
+            post_title = forms.CharField(max_length=60)
+            post_content = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}))
+    - {{ form }} / {{ form.as_div }} -> each field in a <div>   (DEFAULT, {{ form }} == as_div)
+        <div>
+            <label for="id_post_title">Post title:</label>
+            <input type="text" name="post_title" maxlength="60" required id="id_post_title">
+        </div>
+        <div> ... post_content ... </div>
+    - {{ form.as_p }} -> each field in a <p>
+        <p>
+            <label for="id_post_title">Post title:</label>
+            <input type="text" name="post_title" ...>
+        </p>
+    - {{ form.as_table }} -> each field is a table ROW: label in <th>, input in <td>
+        <tr>
+            <th><label for="id_post_title">Post title:</label></th>
+            <td><input type="text" name="post_title" ...></td>
+        </tr>
+        Django does NOT add <table> -> I must write it myself:
+            <form method="POST">
+                {% csrf_token %}
+                <table>
+                    {{ form.as_table }}
+                </table>
+                <button type="submit">Save</button>
+            </form>
+        without <table>, the <tr>/<td> tags are invalid HTML -> layout breaks.
+    - {{ form.as_ul }} -> each field is a list item <li>
+        <li>
+            <label for="id_post_title">Post title:</label>
+            <input type="text" name="post_title" ...>
+        </li>
+        Django does NOT add <ul> -> wrap it: <ul>{{ form.as_ul }}</ul>
+    - Summary:
+        +------------------+------------------+-------------------------------+
+        | method           | wraps each field | I must add around it          |
+        +------------------+------------------+-------------------------------+
+        | {{ form }}       | <div>            | nothing                       |
+        | form.as_div      | <div>            | nothing                       |
+        | form.as_p        | <p>              | nothing                       |
+        | form.as_table    | <tr><th><td>     | <table> ... </table>          |
+        | form.as_ul       | <li>             | <ul> ... </ul>                |
+        +------------------+------------------+-------------------------------+
+        Always also: <form method="POST">, {% csrf_token %}, submit button.
+    - Errors and help_text appear inside the same wrapper of their field.
