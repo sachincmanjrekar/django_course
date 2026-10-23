@@ -1834,3 +1834,40 @@
       form.hidden_fields  -> only HiddenInput fields
     - Why loop: one layout for all fields, new fields in forms.py show up automatically,
       and I still control the HTML (errors, help text, CSS classes).
+
+## Widgets in Django forms
+
+    - Field  = WHAT data is accepted + validation (CharField, DateField, ChoiceField...)
+      Widget = HOW it is shown in HTML (text box, textarea, dropdown, radio...)
+      every field has a DEFAULT widget; widget=... changes only the HTML, not the validation.
+    - (all checked by rendering a test form)
+        +------------------------------------------+------------------------+------------------------------------------+
+        | field                                    | widget (default/given) | HTML                                     |
+        +------------------------------------------+------------------------+------------------------------------------+
+        | CharField()                              | TextInput              | <input type="text">                      |
+        | CharField(widget=forms.Textarea)         | Textarea               | <textarea cols rows>                     |
+        | CharField(widget=forms.PasswordInput)    | PasswordInput          | <input type="password"> (dots)           |
+        | EmailField()                             | EmailInput             | <input type="email" maxlength="320">     |
+        | IntegerField()                           | NumberInput            | <input type="number">                    |
+        | DateField()                              | DateInput              | <input type="text">  (no calendar!)      |
+        | DateField(widget=forms.DateInput(        | DateInput              | <input type="date">  (calendar picker)   |
+        |           attrs={'type': 'date'}))       |                        |                                          |
+        | BooleanField()                           | CheckboxInput          | <input type="checkbox">                  |
+        | ChoiceField(choices=...)                 | Select                 | <select><option>...                      |
+        | ChoiceField(..., widget=RadioSelect)     | RadioSelect            | radio buttons, one per choice            |
+        | MultipleChoiceField(choices=...)         | SelectMultiple         | <select multiple>                        |
+        | MultipleChoiceField(...,                 | CheckboxSelectMultiple | checkboxes, one per choice               |
+        |   widget=CheckboxSelectMultiple)         |                        |                                          |
+        | CharField(widget=forms.HiddenInput)      | HiddenInput            | <input type="hidden">                    |
+        +------------------------------------------+------------------------+------------------------------------------+
+    - attrs={...} -> extra HTML attributes on the input (CSS classes, placeholder, rows...):
+        forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control',
+                                                      'placeholder': 'Post title'}))
+        -> <input type="text" name="styled" class="form-control" placeholder="Post title" required id="id_styled">
+        forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'cols': 30}))
+        -> <textarea name="area" cols="30" rows="3" required id="id_area">
+      attrs is how Bootstrap classes get onto Django inputs.
+    - RadioSelect / CheckboxSelectMultiple -> each choice gets its own id: id_radio_0, id_radio_1
+      and its own <label>.
+    - Pass the widget CLASS (forms.Textarea) or an INSTANCE with options
+      (forms.Textarea(attrs={...})) -> both work.
