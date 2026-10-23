@@ -1798,3 +1798,39 @@
         aria-invalid="true" when the field has an error.
     - In short: {{ form }} -> everything automatic; manual -> I choose each piece,
       and only get what I write.
+
+## Looping through form fields ({% for field in form %})
+
+    - (checked by rendering a test form: post_title max 5 + help_text, post_content Textarea,
+       secret = HiddenInput; submitted with "too long" title and empty content)
+    - {% for field in form %} -> one loop step per field, in the order written in the form class.
+    - What each field gives inside the loop:
+        {{ field }}               -> the input / textarea / select HTML
+        {{ field.name }}          -> post_title          (name in request.POST)
+        {{ field.label }}         -> Post title          (text only, no <label>, no ":")
+        {{ field.label_tag }}     -> <label for="id_post_title">Post title:</label>
+        {{ field.id_for_label }}  -> id_post_title       (for my own <label for="...">)
+        {{ field.value }}         -> too long            (current / typed value)
+        {{ field.help_text }}     -> Max 5 letters.
+        {{ field.errors }}        -> list of errors (loop it for own HTML)
+        {{ field.is_hidden }}     -> True for HiddenInput (secret), else False
+        {{ forloop.counter }}     -> 1, 2, 3 ... (normal for-loop variables work too)
+    - Result per field:
+        [1] post_title   | value=too long | errors: Ensure this value has at most 5 characters (it has 8).
+        [2] post_content | value=         | errors: This field is required.
+        [3] secret       | value=abc      | is_hidden=True
+    - Bootstrap style loop (visible fields, then hidden ones):
+        {% for field in form.visible_fields %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {% for e in field.errors %}<div class="text-danger">{{ e }}</div>{% endfor %}
+            </div>
+        {% endfor %}
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+      -> hidden fields have no label/box: <input type="hidden" name="secret" value="abc" id="id_secret">
+    - form.visible_fields -> fields that are not hidden
+      form.hidden_fields  -> only HiddenInput fields
+    - Why loop: one layout for all fields, new fields in forms.py show up automatically,
+      and I still control the HTML (errors, help text, CSS classes).
